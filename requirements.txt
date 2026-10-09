@@ -1,0 +1,7 @@
+pandas
+openpyxl
+requests
+beautifulsoup4
+docxtpl
+tkcalendar
+pywin32; sys_platform == "win32"
