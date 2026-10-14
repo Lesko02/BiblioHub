@@ -17,11 +17,11 @@ TOOLS = [
     ToolInfo(
         key="scraper",
         title="Scraper Insegnamenti",
-        version="6.2",
+        version="6.3",
         icon="🔎",
         description="Estrae docenti e bibliografia d'esame dagli elenchi "
-                    "insegnamenti A-Z dei corsi di laurea UNIMI e confronta "
-                    "due estrazioni per individuare le differenze.",
+                    "insegnamenti A-Z dei corsi di laurea UNIMI. Include il "
+                    "merge originale, che segnala solo le differenze.",
         page="bibliohub.pages.scraper:ScraperPage",
         requires=["pandas", "openpyxl", "requests", "bs4"],
     ),
@@ -47,5 +47,16 @@ TOOLS = [
         page="bibliohub.pages.attestazioni:AttestazioniPage",
         requires=["pandas", "openpyxl", "docxtpl", "tkcalendar"]
                  + (["win32com"] if sys.platform == "win32" else []),
+    ),
+    ToolInfo(
+        key="merge",
+        title="Merge bibliografie",
+        version="1.0",
+        icon="🔀",
+        description="Confronta due estrazioni dello Scraper ignorando "
+                    "maiuscole e minuscole. Mantiene Periodo ed Edizione e "
+                    "può mostrare solo le differenze oppure solo i testi in comune.",
+        page="bibliohub.pages.merge_bibliografie:MergeBibliografiePage",
+        requires=["pandas", "openpyxl"],
     ),
 ]

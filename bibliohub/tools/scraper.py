@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill
 
-VERSION = "6.2"
+VERSION = "6.3"
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
@@ -154,17 +154,21 @@ def _extract_edition_data(edition_header, edition_content_div):
                  'af-program-yes-module-material' not in c)
             )
         )
+        # parts va accumulato fuori dal ciclo: dentro, ogni blocco
+        # sovrascriveva il precedente e restava solo l'ultimo modulo.
+        parts = []
         for mat_div in mat_divs:
-            parts = []
             inner = mat_div.find('div')
-            if inner:
-                strong = inner.find('strong')
-                if strong:
-                    strong.decompose()
-                material = inner.get_text(separator='\n', strip=True)
-                parts.append(material)
-            if parts:
-                material = '\n\n'.join(parts)
+            if not inner:
+                continue
+            strong = inner.find('strong')
+            if strong:
+                strong.decompose()
+            text = inner.get_text(separator='\n', strip=True)
+            if text:
+                parts.append(text)
+        if parts:
+            material = '\n\n'.join(parts)
 
     return {
         'edizione':    nome_edizione,

@@ -46,6 +46,14 @@ class ScraperPage(ToolPage):
         self.merge_right = PathField(tab_m, 1, "File RIGHT (.xlsx)", filetypes=XLSX)
         self.merge_out = PathField(tab_m, 2, "File di output (.xlsx)", mode="save",
                                    filetypes=XLSX, default_ext=".xlsx")
+        ttk.Label(
+            tab_m,
+            text="Questo merge distingue maiuscole e minuscole e non riporta "
+                 "Periodo ed Edizione. Per il confronto nuovo usa Merge bibliografie.",
+            style="CardMuted.TLabel",
+            wraplength=720,
+            justify="left",
+        ).grid(row=4, column=0, columnspan=3, sticky="w", pady=(10, 0))
 
         self.run_button = self.add_action("▶  Avvia", self.start, accent=True)
         self.register_busy(self.url_entry, self.scrape_out, self.merge_left,
