@@ -20,8 +20,8 @@ class MergeBibliografiePage(ToolPage):
     description = (
         "Confronta due file dello Scraper con le stesse intestazioni di colonna. "
         "Guarda solo il testo delle celle, non la formattazione, e tratta "
-        "«Rossi» e «rossi» come lo stesso valore. Periodo ed Edizione restano "
-        "nel risultato e distinguono due adozioni diverse."
+        "«Rossi» e «rossi» come lo stesso valore. Ordinamento, Periodo ed Edizione "
+        "restano nel risultato e distinguono due adozioni diverse."
     )
 
     def build(self):

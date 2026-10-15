@@ -13,9 +13,10 @@ class ScraperPage(ToolPage):
     title = "Scraper Insegnamenti"
     version = scraper.VERSION
     description = ("Scraping: raccoglie da ogni insegnamento dell'elenco A-Z docente e materiale "
-                   "didattico, una riga per voce bibliografica (le edizioni non attive sono "
-                   "evidenziate in giallo).  Merge: confronta due estrazioni e riporta solo "
-                   "le righe diverse, indicando il file di origine.")
+                   "didattico, una riga per voce bibliografica. La colonna Ordinamento indica "
+                   "la tabella di provenienza (per esempio a.a. 2026/27 (FAA)). Le edizioni non "
+                   "attive sono evidenziate in giallo.  Merge: confronta due estrazioni e riporta "
+                   "solo le righe diverse, indicando il file di origine.")
 
     def build(self):
         self.tabs = ttk.Notebook(self.body)

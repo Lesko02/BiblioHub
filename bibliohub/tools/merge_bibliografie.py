@@ -1,10 +1,10 @@
 """
-Merge bibliografie (v1.0).
+Merge bibliografie (v1.1).
 
 Confronta due Excel prodotti dallo Scraper (stesse intestazioni di colonna).
 Il confronto è sul testo delle celle, non sulla formattazione Excel, e ignora
-maiuscole/minuscole. Periodo ed Edizione fanno parte della chiave, insieme a
-Docente, Descrizione, Data e ISBN.
+maiuscole/minuscole. Ordinamento, Periodo ed Edizione fanno parte della chiave,
+insieme a Docente, Descrizione, Data e ISBN.
 
 Modi:
   diff    solo le righe presenti in una sola estrazione (Left / Right)
@@ -20,7 +20,9 @@ from openpyxl.utils import get_column_letter
 
 import pandas as pd
 
-VERSION = "1.0"
+from ..values import as_text
+
+VERSION = "1.1"
 
 MODE_DIFF = "diff"
 MODE_COMMON = "common"
@@ -33,8 +35,11 @@ REQUIRED_COLUMNS = [
     "Insegnamento", "Periodo", "Edizione",
     "Docente", "Descrizione", "Data", "ISBN",
 ]
-COMPARE_COLUMNS = ["Periodo", "Edizione", "Docente", "Descrizione", "Data", "ISBN"]
-OUTPUT_COLUMNS = REQUIRED_COLUMNS + ["Origine"]
+COMPARE_COLUMNS = ["Ordinamento", "Periodo", "Edizione", "Docente", "Descrizione", "Data", "ISBN"]
+OUTPUT_COLUMNS = [
+    "Insegnamento", "Ordinamento", "Periodo", "Edizione",
+    "Docente", "Descrizione", "Data", "ISBN", "Origine",
+]
 
 HEADER_FONT = Font(bold=True, color="FFFFFF")
 HEADER_FILL = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
@@ -46,11 +51,7 @@ ORIGIN_FILLS = {
 
 
 def _display(value) -> str:
-    if value is None or (isinstance(value, float) and pd.isna(value)):
-        return ""
-    if isinstance(value, float) and value.is_integer():
-        return str(int(value))
-    return str(value).strip()
+    return as_text(value)
 
 
 def _norm(value) -> str:
@@ -72,6 +73,9 @@ def _load(path, log):
     log(f"Lettura: {path}")
     df = pd.read_excel(path)
     _require_columns(df, path)
+    if "Ordinamento" not in df.columns:
+        df["Ordinamento"] = ""
+        log(f"Colonna Ordinamento assente, le righe restano senza ordinamento: {path}")
     return df
 
 
@@ -103,6 +107,7 @@ def _index_rows(rows):
 def _emit(output_rows, row, course_name, origin):
     output_rows.append({
         "Insegnamento": course_name,
+        "Ordinamento": _display(row["Ordinamento"]),
         "Periodo": _display(row["Periodo"]),
         "Edizione": _display(row["Edizione"]),
         "Docente": _display(row["Docente"]),

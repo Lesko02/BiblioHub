@@ -19,21 +19,43 @@ from bs4 import BeautifulSoup
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill
 
-VERSION = "6.3"
+from ..values import as_text
+
+VERSION = "6.4"
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
 BULLET_PATTERN = re.compile(r'^\s*(?:[·•◦●○\-–—*]+|o(?![A-Za-z]))\s*')
+IMMATRICOLATI_PREFIX = re.compile(r"(?i)^immatricolati\s+")
+NELL_ANNO = re.compile(r"(?i)^nell['’]a\.a\.\s*")
 YEAR_PATTERN = re.compile(r'\b(200[0-9]|201[0-9]|202[0-6])\b')
 ISBN_PATTERN = re.compile(r'\b(97[89]\d{10}|97[89]-\d{2}-\d{5}-\d{2}-\d|97[89]-\d{10})\b')
 
-SCRAPING_COLUMNS = ['Insegnamento', 'Periodo', 'Edizione',
+SCRAPING_COLUMNS = ['Insegnamento', 'Ordinamento', 'Periodo', 'Edizione',
                     'Docente', 'Descrizione', 'Data', 'ISBN']
-MERGE_COMPARE_COLUMNS = ['Docente', 'Descrizione', 'Data', 'ISBN']
-MERGE_COLUMNS = ['Insegnamento', 'Docente', 'Descrizione', 'Data', 'ISBN', 'Origine']
+MERGE_COMPARE_COLUMNS = ['Ordinamento', 'Docente', 'Descrizione', 'Data', 'ISBN']
+MERGE_COLUMNS = ['Insegnamento', 'Ordinamento', 'Docente', 'Descrizione', 'Data', 'ISBN', 'Origine']
 
 HEADER_FONT = Font(bold=True, color="FFFFFF")
 HEADER_FILL = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+
+
+def ordinamento_label(table) -> str:
+    """
+    Nome dell'accordion che contiene la tabella, senza il prefisso
+    «Immatricolati». Es. «a.a. 2026/27 (FAA)», «dal 2018/19 al 2024/25 (F1X)».
+    """
+    accordion = table.find_parent("div", class_="accordion")
+    if accordion is None:
+        return ""
+    title = accordion.find("a", class_=lambda c: c and "panel-title" in c)
+    raw = title.get_text(" ", strip=True) if title else ""
+    if not raw:
+        heading = accordion.find(class_=lambda c: c and "panel-heading" in str(c))
+        raw = heading.get_text(" ", strip=True) if heading else ""
+    raw = IMMATRICOLATI_PREFIX.sub("", raw).strip()
+    raw = NELL_ANNO.sub("a.a. ", raw).strip()
+    return raw
 
 
 def default_output_name(page_url):
@@ -50,9 +72,10 @@ def fetch_course_list(page_url, log=print, session=None):
     """
     Visita la pagina elenco insegnamenti A-Z di Unimi e raccoglie
     tutti i corsi dalle tabelle 'table.table-insegnamenti'.
-    Ritorna una lista di tuple (nome_corso, url_corso, periodo).
+    Ritorna una lista di tuple (nome_corso, url_corso, periodo, ordinamento).
     Il campo 'periodo' viene letto dalla colonna 'Periodo di
     distribuzione' della tabella; se assente resta stringa vuota.
+    'ordinamento' è il titolo dell'accordion che contiene la tabella.
     """
     http = session or requests
     log(f"🌐 Recupero elenco corsi da: {page_url}")
@@ -91,6 +114,8 @@ def fetch_course_list(page_url, log=print, session=None):
         if not tbody:
             continue
 
+        ordinamento = ordinamento_label(table)
+
         for row in tbody.find_all('tr'):
             tds = row.find_all('td')
             td_name = row.find('td',
@@ -119,7 +144,7 @@ def fetch_course_list(page_url, log=print, session=None):
                 if td_per:
                     periodo = td_per.get_text(strip=True)
 
-            courses.append((name, href, periodo))
+            courses.append((name, href, periodo, ordinamento))
 
     log(f"Trovati {len(courses)} corsi nell'elenco.")
     return courses
@@ -231,7 +256,7 @@ def scrape_course_data(url, session=None):
     return True, editions_data
 
 
-def _material_rows(insegnamento, periodo, edition):
+def _material_rows(insegnamento, ordinamento, periodo, edition):
     """Trasforma il materiale di un'edizione in righe Excel (una per voce)."""
     material = edition['material']
     lines = material.split('\n') if isinstance(material, str) else [str(material)]
@@ -247,6 +272,7 @@ def _material_rows(insegnamento, periodo, edition):
         isbn_match = ISBN_PATTERN.search(cleaned)
         rows.append({
             'Insegnamento': insegnamento,
+            'Ordinamento':  ordinamento,
             'Periodo':      periodo,
             'Edizione':     edition['edizione'],
             'Docente':      edition['docente'],
@@ -268,6 +294,13 @@ def _style_header(ws):
     for cell in ws[1]:
         cell.font = HEADER_FONT
         cell.fill = HEADER_FILL
+
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            if cell.value is None:
+                continue
+            cell.value = as_text(cell.value)
+            cell.number_format = "@"
 
 
 def auto_adjust_columns_and_style(filename, inactive_rows):
@@ -317,14 +350,19 @@ def run_scraping(page_url, output_file, log=print, progress=None, should_stop=No
         inactive_output_rows = set()
         processed = 0
         stopped = False
+        scraped = {}
 
-        for idx, (insegnamento, course_url, periodo) in enumerate(courses):
+        for idx, (insegnamento, course_url, periodo, ordinamento) in enumerate(courses):
             if should_stop():
                 stopped = True
                 break
 
-            log(f"🔍 [{idx + 1}/{len(courses)}] {insegnamento}")
-            success, editions = scrape_course_data(course_url, session)
+            label = f"{insegnamento} — {ordinamento}" if ordinamento else insegnamento
+            log(f"🔍 [{idx + 1}/{len(courses)}] {label}")
+            if course_url not in scraped:
+                scraped[course_url] = scrape_course_data(course_url, session)
+                time.sleep(delay)
+            success, editions = scraped[course_url]
 
             if not success:
                 log("   ⏭️ Saltato: errore nel recupero della pagina")
@@ -335,6 +373,7 @@ def run_scraping(page_url, output_file, log=print, progress=None, should_stop=No
                         inactive_output_rows.add(len(output_rows))
                         output_rows.append({
                             'Insegnamento': insegnamento,
+                            'Ordinamento':  ordinamento,
                             'Periodo':      periodo,
                             'Edizione':     ed['edizione'],
                             'Docente':      ed['docente'],
@@ -343,12 +382,12 @@ def run_scraping(page_url, output_file, log=print, progress=None, should_stop=No
                             'ISBN':         '',
                         })
                     else:
-                        output_rows.extend(_material_rows(insegnamento, periodo, ed))
+                        output_rows.extend(
+                            _material_rows(insegnamento, ordinamento, periodo, ed))
 
             processed = idx + 1
             if progress:
                 progress(processed, len(courses))
-            time.sleep(delay)
 
     df_output = pd.DataFrame(output_rows, columns=SCRAPING_COLUMNS)
     df_output.to_excel(output_file, index=False)
@@ -386,9 +425,14 @@ def compare_and_merge_excel(left_path, right_path, output_path, log=print):
     df_right = pd.read_excel(right_path)
 
     for df in (df_left, df_right):
+        if "Ordinamento" not in df.columns:
+            df["Ordinamento"] = ""
         for col in MERGE_COMPARE_COLUMNS:
-            if col in df.columns:
-                df[col] = df[col].fillna('').astype(str)
+            if col not in df.columns:
+                df[col] = ""
+            df[col] = df[col].map(as_text)
+        if "Insegnamento" in df.columns:
+            df["Insegnamento"] = df["Insegnamento"].map(as_text)
 
     output_rows = []
     processed_courses = set()
