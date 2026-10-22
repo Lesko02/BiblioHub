@@ -1,76 +1,59 @@
 # BiblioHub
 
-Desktop app for the library workflows of the University of Milan: scrape course bibliographies from the degree-course sites, convert Alma purchase-order lines, generate payment attestations, and compare two bibliography exports.
+Programma Windows per le bibliografie d'esame, gli ordini Alma e le attestazioni di pagamento dell'Università degli Studi di Milano.
 
-The user manual is in Italian: [docs/Manuale.md](docs/Manuale.md) and [docs/Manuale_BiblioHub.pdf](docs/Manuale_BiblioHub.pdf). In the app, **ⓘ Guida** at the top right opens the guide for the screen you are on, and can open the PDF.
+Dentro l'app, **ⓘ Guida** in alto a destra spiega la schermata aperta. Il manuale completo è `docs/Manuale_BiblioHub.pdf`.
 
-## Run locally
+## Scarica e avvia
 
-Windows, Python 3.11 or newer. Microsoft Word is required only when you generate attestation PDFs.
+**1. Installa Python, se non ce l'hai già**
 
-```powershell
-cd C:\Users\Lesko\Documents\BiblioHub
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+Apri [python.org/downloads/windows](https://www.python.org/downloads/windows/), scarica Python 3.11 o più nuovo e avvialo. Nella prima schermata spunta **Add python.exe to PATH**, poi Install.
+
+**2. Scarica BiblioHub**
+
+Su questa pagina di GitHub premi il pulsante verde **Code**, poi **Download ZIP**. Apri lo ZIP e premi **Estrai tutto**.
+
+**3. Avvia**
+
+Apri la cartella appena estratta. Clicca una volta la barra dell'indirizzo in alto (dove c'è il percorso), scrivi `cmd` e premi Invio.
+
+Nella finestra nera incolla queste due righe, una alla volta, e premi Invio dopo ognuna:
+
+```bat
 pip install -r requirements.txt
 python main.py
 ```
 
-To start without a console, using the packages of that environment:
+Si apre BiblioHub. Le volte successive, dalla stessa cartella, ripeti solo `python main.py`.
 
-```powershell
-.\.venv\Scripts\pythonw.exe BiblioHub.pyw
-```
+Microsoft Word serve solo se generi i PDF delle attestazioni. Se una finestra dice che manca un pacchetto, accetta l'installazione.
 
-The first time you open a tool, BiblioHub offers to install any missing Python package. Folders and options are remembered in `%APPDATA%\BiblioHub\settings.json`.
+Se al passo 3 compare «python non è riconosciuto», chiudi la finestra nera, ripeti il passo 1 controllando la spunta su PATH, poi rifai il passo 3.
 
-## Avvio in locale
+## Download and run
 
-Windows, Python 3.11 o successivo. Microsoft Word serve solo per i PDF delle attestazioni.
+**1. Install Python if you don't have it**
 
-```powershell
-cd C:\Users\Lesko\Documents\BiblioHub
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+Open [python.org/downloads/windows](https://www.python.org/downloads/windows/), download Python 3.11 or newer and run it. On the first screen tick **Add python.exe to PATH**, then Install.
+
+**2. Download BiblioHub**
+
+On this GitHub page click the green **Code** button, then **Download ZIP**. Open the ZIP and click **Extract all**.
+
+**3. Start**
+
+Open the folder you just extracted. Click the address bar at the top, type `cmd` and press Enter.
+
+In the black window paste these two lines, one at a time, and press Enter after each:
+
+```bat
 pip install -r requirements.txt
 python main.py
 ```
 
-Senza finestra nera, con i pacchetti di quell'ambiente:
+BiblioHub opens. Next time, from the same folder, run only `python main.py`.
 
-```powershell
-.\.venv\Scripts\pythonw.exe BiblioHub.pyw
-```
+Microsoft Word is needed only for attestation PDFs. If a window says a package is missing, accept the install.
 
-Alla prima apertura di uno strumento, BiblioHub può installare i pacchetti mancanti. Percorsi e opzioni restano in `%APPDATA%\BiblioHub\settings.json`.
-
-Nell'app, **ⓘ Guida** in alto a destra spiega la schermata aperta. Il manuale completo è `docs/Manuale_BiblioHub.pdf`.
-
-## Tools
-
-| Tool | Version | Role |
-| --- | --- | --- |
-| Scraper Insegnamenti | 6.5 | Course bibliographies from the A–Z list, with academic year and ordinamento |
-| PO Line → Excel/CSV | 2.1 | Alma PO lines to CSV and Excel, list price restored |
-| Attestazioni di pagamento | 3.1 | Word, PDF and the accompanying email, grouped by supplier and voucher |
-| Merge bibliografie | 1.1 | Case-insensitive compare of two scraper workbooks |
-
-Application version: 1.1.0.
-
-## Layout
-
-```
-main.py, BiblioHub.pyw     start the app
-bibliohub/app.py           window, navigation, package install
-bibliohub/registry.py      tools, versions, dependencies
-bibliohub/pages/           screens
-bibliohub/tools/           logic, independent of the GUI
-bibliohub/guide.py         Italian help text
-docs/                      Italian manual (Markdown and PDF)
-```
-
-After editing `bibliohub/guide.py`, regenerate the manual from the project folder:
-
-```powershell
-python docs/build_manual.py
-```
+If step 3 says Python is not recognized, close the black window, repeat step 1 and check the PATH box, then do step 3 again.
