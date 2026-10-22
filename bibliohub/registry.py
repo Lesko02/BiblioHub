@@ -17,11 +17,11 @@ TOOLS = [
     ToolInfo(
         key="scraper",
         title="Scraper Insegnamenti",
-        version="6.4",
+        version="6.5",
         icon="🔎",
         description="Estrae docenti e bibliografia d'esame dagli elenchi "
-                    "insegnamenti A-Z dei corsi di laurea UNIMI, con la colonna "
-                    "Ordinamento. Include il merge originale, che segnala solo le differenze.",
+                    "insegnamenti A-Z. Si scelgono anno accademico e ordinamento, "
+                    "come sul sito. Include il merge originale.",
         page="bibliohub.pages.scraper:ScraperPage",
         requires=["pandas", "openpyxl", "requests", "bs4"],
     ),
