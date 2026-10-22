@@ -88,6 +88,7 @@ class App(tk.Tk):
         self.container.columnconfigure(0, weight=1)
 
         self.pages = {}
+        self.current_key = "home"
         self.home = HomePage(self.container, self)
         self.home.grid(row=0, column=0, sticky="nsew")
         self.show_home()
@@ -103,9 +104,34 @@ class App(tk.Tk):
         self.header_title.pack(side="left")
         self.header_sub = ttk.Label(header, text="", style="HeaderSub.TLabel")
         self.header_sub.pack(side="left", padx=(10, 0))
+        self._build_help_button(header)
         ttk.Label(header, text=f"v{APP_VERSION}", style="HeaderSub.TLabel").pack(side="right")
 
+    def _build_help_button(self, header):
+        self.help_button = tk.Button(
+            header,
+            text="ⓘ  Guida",
+            command=self.show_guide,
+            font=(theme.FONT_FAMILY, 10, "bold"),
+            fg=theme.PRIMARY,
+            bg="white",
+            activeforeground=theme.PRIMARY,
+            activebackground="#E4ECF7",
+            relief="flat",
+            bd=0,
+            padx=10,
+            pady=2,
+            cursor="hand2",
+            takefocus=True,
+        )
+        self.help_button.pack(side="right", padx=(12, 0))
+
+    def show_guide(self):
+        from .guide_ui import GuideWindow
+        GuideWindow.open(self, self.current_key)
+
     def show_home(self):
+        self.current_key = "home"
         self.back_button.pack_forget()
         self.header_title.configure(text=APP_NAME)
         self.header_sub.configure(text="")
@@ -113,6 +139,7 @@ class App(tk.Tk):
         self.home.tkraise()
 
     def _show_page(self, info, page):
+        self.current_key = info.key
         self.back_button.pack(side="left", padx=(0, 14), before=self.header_title)
         self.header_title.configure(text=info.title)
         self.header_sub.configure(text=f"v{info.version}")

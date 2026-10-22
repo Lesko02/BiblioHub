@@ -73,8 +73,12 @@ class HomePage(ttk.Frame):
 
         ttk.Label(self, text=f"📚 {APP_NAME}", style="Hero.TLabel").pack(anchor="w")
         ttk.Label(self, text=APP_SUBTITLE, style="HeroSub.TLabel").pack(anchor="w", pady=(2, 0))
-        ttk.Label(self, text="Scegli uno strumento per iniziare.",
-                  style="Muted.TLabel").pack(anchor="w", pady=(14, 18))
+        ttk.Label(
+            self,
+            text="Scegli uno strumento per iniziare.  ⓘ Guida, in alto a destra, "
+                 "spiega la schermata in cui ti trovi.",
+            style="Muted.TLabel",
+        ).pack(anchor="w", pady=(14, 18))
 
         grid = ttk.Frame(self)
         grid.pack(fill="x")
