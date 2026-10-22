@@ -154,7 +154,7 @@ class AttestazioniPage(ToolPage):
             gruppi = df.groupby(["fornitore", "numero_buono"])
             log(f"Righe nell'intervallo: {len(df)}  →  attestazioni da generare: {gruppi.ngroups}\n")
             for (fornitore, buono), righe in gruppi:
-                log(f"• {fornitore} — buono {buono}: {len(righe)} fatture, "
+                log(f"• {fornitore} — buono {attestazioni.as_text(buono)}: {len(righe)} fatture, "
                     f"totale {format_euro(righe['totale'].sum())}")
 
         self.run_task(task, start_message=self._header(excel, start, end))

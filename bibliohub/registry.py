@@ -17,18 +17,18 @@ TOOLS = [
     ToolInfo(
         key="scraper",
         title="Scraper Insegnamenti",
-        version="6.2",
+        version="6.5",
         icon="🔎",
         description="Estrae docenti e bibliografia d'esame dagli elenchi "
-                    "insegnamenti A-Z dei corsi di laurea UNIMI e confronta "
-                    "due estrazioni per individuare le differenze.",
+                    "insegnamenti A-Z. Si scelgono anno accademico e ordinamento, "
+                    "come sul sito. Include il merge originale.",
         page="bibliohub.pages.scraper:ScraperPage",
         requires=["pandas", "openpyxl", "requests", "bs4"],
     ),
     ToolInfo(
         key="po",
         title="PO Line → Excel/CSV",
-        version="2.0",
+        version="2.1",
         icon="📦",
         description="Converte l'export delle linee d'ordine (PO) di Alma in "
                     "CSV e/o Excel con titolo, autore, editore, anno, ISBN, "
@@ -39,7 +39,7 @@ TOOLS = [
     ToolInfo(
         key="attestazioni",
         title="Attestazioni di pagamento",
-        version="3.0",
+        version="3.1",
         icon="🧾",
         description="Genera le attestazioni di pagamento (Word + PDF) e il "
                     "testo email per fornitore e buono, a partire dalla "
@@ -47,5 +47,16 @@ TOOLS = [
         page="bibliohub.pages.attestazioni:AttestazioniPage",
         requires=["pandas", "openpyxl", "docxtpl", "tkcalendar"]
                  + (["win32com"] if sys.platform == "win32" else []),
+    ),
+    ToolInfo(
+        key="merge",
+        title="Merge bibliografie",
+        version="1.1",
+        icon="🔀",
+        description="Confronta due estrazioni dello Scraper ignorando "
+                    "maiuscole e minuscole. Mantiene Ordinamento, Periodo ed "
+                    "Edizione e può mostrare solo le differenze oppure solo i testi in comune.",
+        page="bibliohub.pages.merge_bibliografie:MergeBibliografiePage",
+        requires=["pandas", "openpyxl"],
     ),
 ]

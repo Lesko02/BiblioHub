@@ -78,13 +78,18 @@ class HomePage(ttk.Frame):
 
         grid = ttk.Frame(self)
         grid.pack(fill="x")
+        columns = 2
 
         self.cards = {}
-        for col, info in enumerate(TOOLS):
+        for index, info in enumerate(TOOLS):
+            row, col = divmod(index, columns)
             grid.columnconfigure(col, weight=1, uniform="cards")
             card = ToolCard(grid, info, app.open_tool)
-            card.grid(row=0, column=col, sticky="nsew",
-                      padx=(0 if col == 0 else 10, 0 if col == len(TOOLS) - 1 else 10))
+            card.grid(
+                row=row, column=col, sticky="nsew",
+                padx=(0 if col == 0 else 10, 0 if col == columns - 1 else 10),
+                pady=(0 if row == 0 else 12, 0),
+            )
             self.cards[info.key] = card
 
         ttk.Label(self, text=f"{APP_NAME} v{APP_VERSION}  ·  Università degli Studi di Milano",

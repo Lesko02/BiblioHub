@@ -15,7 +15,9 @@ from pathlib import Path
 import pandas as pd
 from docxtpl import DocxTemplate, RichText
 
-VERSION = "3.0"
+from ..values import as_text
+
+VERSION = "3.1"
 
 FONT = "Calibri"
 
@@ -65,15 +67,15 @@ def richiede_modello_iva(righe: pd.DataFrame) -> bool:
 def _format_data_buono(value):
     if isinstance(value, (pd.Timestamp, datetime)):
         return value.strftime("%d/%m/%Y")
-    return str(value)
+    return as_text(value)
 
 
 def costruisci_contesto(fornitore: str, righe: pd.DataFrame) -> dict:
     fatture = []
     for _, riga in righe.iterrows():
         fatture.append({
-            "number": riga["number"],
-            "identificativo": riga["identificativo"],
+            "number": as_text(riga["number"]),
+            "identificativo": as_text(riga["identificativo"]),
             "data_protocollo": riga["data_protocollo"].strftime("%d/%m/%Y"),
             "totale": f'{riga["totale"]:.2f}'.replace(".", ","),
             "sistema": etichetta_sistema(riga["Sistema"]),
@@ -86,9 +88,9 @@ def costruisci_contesto(fornitore: str, righe: pd.DataFrame) -> dict:
         if chiave not in visti:
             visti.add(chiave)
             buoni.append({
-                "numero_buono": riga["numero_buono"],
+                "numero_buono": as_text(riga["numero_buono"]),
                 "data_buono": _format_data_buono(riga["data_buono"]),
-                "pagamento": riga["pagamento"],
+                "pagamento": as_text(riga["pagamento"]),
             })
 
     fatture_rt = RichText()
@@ -107,7 +109,7 @@ def costruisci_contesto(fornitore: str, righe: pd.DataFrame) -> dict:
     fornitore_rt.add(fornitore, bold=True, font=FONT)
 
     cig_rt = RichText()
-    cig_rt.add(f'CIG {righe["CIG"].iloc[0]}', bold=True, font=FONT)
+    cig_rt.add(f'CIG {as_text(righe["CIG"].iloc[0])}', bold=True, font=FONT)
 
     importi_rt = RichText()
     for i, f in enumerate(fatture):
@@ -245,7 +247,7 @@ def genera_documenti(df: pd.DataFrame, template_path, output_dir, make_pdf=True,
                 doc.docx.styles["Normal"].font.name = FONT
 
             data_str = righe_buono["data_protocollo"].min().strftime("%Y%m%d")
-            nome_base = f"Attestazione_{fornitore}_buono{numero_buono}_{data_str}"
+            nome_base = f"Attestazione_{fornitore}_buono{as_text(numero_buono)}_{data_str}"
 
             path_docx = output_dir / f"{nome_base}.docx"
             doc.save(path_docx)

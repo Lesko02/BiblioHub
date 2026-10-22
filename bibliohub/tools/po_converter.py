@@ -26,7 +26,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
-VERSION = "2.0"
+from ..values import as_text
+
+VERSION = "2.1"
 
 COPYRIGHT = "\u00a9"
 
@@ -57,9 +59,9 @@ PRICE_FACTOR = Decimal("1.1764705882")
 
 
 def clean_text(value):
-    if value is None or (isinstance(value, float) and pd.isna(value)):
+    text = as_text(value)
+    if not text:
         return ""
-    text = str(value)
     text = text.replace("\u2019", "'").replace("\u2018", "'")
     text = text.replace("\u201c", '"').replace("\u201d", '"')
     text = text.replace("\u00a0", " ")
