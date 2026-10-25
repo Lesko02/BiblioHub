@@ -101,12 +101,13 @@ CHAPTERS = [
                 "Descrizione, Data, ISBN.",
                 "Ordinamento è il titolo della tabella sul sito, senza la parola "
                 "Immatricolati. Per esempio: a.a. 2026/27 (FAA).",
-                "Ogni libro di un elenco a) b), 1) 2) o di un «oppure» diventa una riga.",
+                "Ogni a capo della pagina, quello del tag br, resta una riga. "
+                "Dentro la stessa riga, a) … z) e 1) … 10) vengono divisi ancora.",
                 "Data è l'ultimo anno tra il 1900 e il 2099 della citazione, di solito "
                 "l'anno di pubblicazione in fondo. «dal 1943 al 2003, Bologna, 2006» "
                 "resta 2006. Un anno come (1797) accanto all'autore resta fuori.",
-                "«a) … 2015; b) … 2017» produce due righe, 2015 e 2017. "
-                "«… 2008, oppure … 1996» produce 2008 e 1996.",
+                "«a) … 2015; b) … 2017» sulla stessa riga produce due righe, 2015 e 2017. "
+                "Due libri separati solo da un a capo restano due righe anche senza a) o 1).",
                 "Un'edizione non attiva è una riga con Descrizione «Edizione non attiva», "
                 "in giallo e in grassetto.",
                 "Le celle sono testo: i numeri non escono con la coda .0.",
@@ -253,8 +254,8 @@ CHAPTERS = [
             H("Data vuota o anno inatteso"),
             P("Data resta vuota quando nella citazione non c'è un anno tra il 1900 e il 2099. "
               "Se l'anno è quello del titolo e più avanti c'è l'anno di stampa, in colonna "
-              "finisce l'anno di stampa. Una bibliografia scritta di seguito, senza a) b), "
-              "1) 2), «oppure» o un punto e virgola a fine citazione, resta una sola riga."),
+              "finisce l'anno di stampa. Due citazioni sulla stessa riga, senza a) … z) "
+              "o 1) … 10), restano una sola riga. Un a capo della pagina le divide comunque."),
             H("File aperto"),
             P("Excel o Word tengono il file bloccato. Chiudi il documento e rilancia. "
               "Il messaggio indica il percorso che non si è potuto scrivere."),
