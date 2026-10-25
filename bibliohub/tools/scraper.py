@@ -21,7 +21,7 @@ from openpyxl.styles import Font, PatternFill
 
 from ..values import as_text
 
-VERSION = "6.5"
+VERSION = "6.6"
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
@@ -29,9 +29,9 @@ BULLET_PATTERN = re.compile(r'^\s*(?:[·•◦●○\-–—*]+|o(?![A-Za-z]))\s
 IMMATRICOLATI_PREFIX = re.compile(r"(?i)^immatricolati\s+")
 NELL_ANNO = re.compile(r"(?i)^nell['’]a\.a\.\s*")
 YEAR_PATTERN = re.compile(r'\b((?:19|20)\d{2})\b')
-MARKER_SPLIT = re.compile(r'\s+(?=(?:oppure\b|\d{1,2}\)\s|[a-zA-Z]\)\s))', re.IGNORECASE)
-MARKER_PREFIX = re.compile(r'^(?:oppure\b|(?:\d{1,2}|[a-zA-Z])\))\s*', re.IGNORECASE)
-LEAD_IN = re.compile(r"(?i)^(un testo a scelta|testi a scelta|a scelta|scegliere)\b")
+# Elenco interno alla stessa riga HTML: a) … z) oppure 1) … 10).
+# Il marcatore resta nel testo della nuova riga.
+LIST_SPLIT = re.compile(r'\s+(?=(?:10|[1-9]|[a-zA-Z])\))')
 ALL_ORDINAMENTI = "Tutti gli ordinamenti"
 ISBN_PATTERN = re.compile(r'\b(97[89]\d{10}|97[89]-\d{2}-\d{5}-\d{2}-\d|97[89]-\d{10})\b')
 
@@ -124,44 +124,24 @@ def publication_year(text) -> str:
 
 def split_resources(text) -> list[str]:
     """
-    Spezza un blocco bibliografico in singole risorse.
-    I ritorni a capo che continuano la stessa citazione restano uniti.
-    Una risorsa nuova inizia dopo «oppure», dopo 1) 2) o a) b),
-    oppure quando la citazione precedente si chiude con «;» o «.».
+    Una riga per ogni interruzione già presente nel testo.
+
+    Quelle interruzioni arrivano dai <br> della pagina: get_text(separator='\\n')
+    le traduce in «a capo» e qui non vengono più riunite. Dentro una stessa riga,
+    un elenco a) … z) o 1) … 10) produce una riga in più per voce.
     """
     if not isinstance(text, str):
         text = str(text)
-    text = MARKER_SPLIT.sub("\n", text.replace("\r", ""))
-    chunks = []
-    buf = ""
-    for raw_line in text.split("\n"):
-        original = raw_line.strip()
-        starts_new = MARKER_PREFIX.match(original) is not None
-        line = BULLET_PATTERN.sub("", original).strip()
-        line = MARKER_PREFIX.sub("", line).strip()
+    rows = []
+    for raw_line in text.replace("\r", "").split("\n"):
+        line = BULLET_PATTERN.sub("", raw_line.strip()).strip()
         if not line or "http://" in line or "https://" in line:
             continue
-        if starts_new and buf:
-            chunks.append(buf)
-            buf = line
-            continue
-        if not buf:
-            buf = line
-            continue
-        if buf.endswith(";") or buf.endswith("."):
-            chunks.append(buf)
-            buf = line
-        else:
-            buf = f"{buf} {line}"
-    if buf:
-        chunks.append(buf)
-
-    kept = []
-    for chunk in chunks:
-        if LEAD_IN.match(chunk) and not publication_year(chunk):
-            continue
-        kept.append(chunk)
-    return kept
+        for piece in LIST_SPLIT.split(line):
+            piece = piece.strip()
+            if piece:
+                rows.append(piece)
+    return rows
 
 
 def default_output_name(page_url):
