@@ -20,10 +20,10 @@ Le ultime cartelle e le opzioni restano in %APPDATA%\BiblioHub\settings.json. Al
 
 ### I quattro strumenti
 
-- Scraper Insegnamenti 6.7 — bibliografie dal sito dei corsi di laurea.
+- Scraper Insegnamenti 6.8 — bibliografie dal sito dei corsi di laurea.
 - PO Line → Excel/CSV 2.1 — linee d'ordine Alma in CSV ed Excel.
 - Attestazioni di pagamento 3.1 — Word, PDF e testo dell'email.
-- Merge bibliografie 1.1 — confronto tra due estrazioni dello scraper.
+- Merge bibliografie 1.2 — confronto tra due estrazioni dello scraper.
 
 ## Scraper Insegnamenti
 
@@ -45,9 +45,9 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 
 - Colonne: Insegnamento, Ordinamento, Periodo, Edizione, Docente, Descrizione, Data, ISBN.
 - Ordinamento è il titolo della tabella sul sito, senza la parola Immatricolati. Per esempio: a.a. 2026/27 (FAA).
-- Ogni a capo della pagina, quello del tag br, resta una riga. Dentro la stessa riga, a) a- a. e 1) 1- 1. (fino a 10) vengono divisi ancora.
+- Ogni a capo della pagina, quello del tag br, resta una riga. Dentro la stessa riga, a) a- e 1) 1- 1. (fino a 10) vengono divisi ancora.
 - Data è l'ultimo anno tra il 1900 e il 2099 della citazione, di solito l'anno di pubblicazione in fondo. «dal 1943 al 2003, Bologna, 2006» resta 2006. Un anno come (1797) accanto all'autore resta fuori.
-- «a) … 2015; b) … 2017», «a- … b-» e «a. … b.» sulla stessa riga producono una riga per voce. Due libri separati solo da un a capo restano due righe anche senza elenco.
+- «a) … 2015; b) … 2017» e «1. … 2.» sulla stessa riga producono una riga per voce. «a. … b.» resta una sola riga: il punto dopo la lettera può essere un autore. Due libri separati solo da un a capo restano due righe anche senza elenco.
 - Un'edizione non attiva è una riga con Descrizione «Edizione non attiva», in giallo e in grassetto.
 - Le celle sono testo: i numeri non escono con la coda .0.
 
@@ -62,7 +62,7 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 
 La seconda scheda confronta due Excel e tiene solo le righe diverse. Il confronto distingue maiuscole e minuscole. Il risultato ha Origine Left o Right e omette Periodo ed Edizione.
 
-Per il confronto tra un anno e l'altro usa lo strumento Merge bibliografie: ignora le maiuscole e tiene Ordinamento, Periodo ed Edizione.
+Per il confronto tra un anno e l'altro usa lo strumento Merge bibliografie: ignora le maiuscole. L'ordinamento resta in colonna e non entra nel confronto.
 
 ### Da tenere presente
 
@@ -122,7 +122,7 @@ Dalla tabella delle fatture produce, per ogni fornitore e buono, l'attestazione 
 
 ## Merge bibliografie
 
-Confronta due Excel prodotti dallo Scraper. Guarda il testo delle celle, non i colori, e tratta «Rossi» e «rossi» come lo stesso valore. Ordinamento, Periodo ed Edizione distinguono due adozioni diverse.
+Confronta due Excel prodotti dallo Scraper. Guarda il testo della risorsa, non i colori, e tratta «Rossi» e «rossi» come lo stesso valore. L'ordinamento (anno accademico) resta visibile e non entra nel confronto. Periodo ed Edizione distinguono due adozioni diverse.
 
 ### Come si usa
 
@@ -144,7 +144,7 @@ Confronta due Excel prodotti dallo Scraper. Guarda il testo delle celle, non i c
 ### Da tenere presente
 
 - Servono le colonne dello Scraper: Insegnamento, Periodo, Edizione, Docente, Descrizione, Data, ISBN. Se manca Ordinamento, il confronto prosegue e la colonna resta vuota.
-- Due righe sono la stessa risorsa quando coincidono, a meno delle maiuscole, Ordinamento, Periodo, Edizione, Docente, Descrizione, Data e ISBN.
+- Due righe sono la stessa risorsa quando coincidono, a meno delle maiuscole, Periodo, Edizione, Docente, Descrizione, Data e ISBN. Un ordinamento diverso non le rende diverse.
 - La scheda Merge dentro lo Scraper è il confronto precedente: distingue le maiuscole e non riporta Periodo ed Edizione.
 
 ## Se qualcosa non va
@@ -155,7 +155,7 @@ L'URL deve iniziare con http. Se il registro si ferma su «Nessun corso trovato�
 
 ### Data vuota o anno inatteso
 
-Data resta vuota quando nella citazione non c'è un anno tra il 1900 e il 2099. Se l'anno è quello del titolo e più avanti c'è l'anno di stampa, in colonna finisce l'anno di stampa. Due citazioni sulla stessa riga, senza un elenco a) a- a. o 1) 1- 1., restano una sola riga. Un a capo della pagina le divide comunque.
+Data resta vuota quando nella citazione non c'è un anno tra il 1900 e il 2099. Se l'anno è quello del titolo e più avanti c'è l'anno di stampa, in colonna finisce l'anno di stampa. Due citazioni sulla stessa riga, senza un elenco a) a- o 1) 1- 1., restano una sola riga. Un a capo della pagina le divide comunque.
 
 ### File aperto
 
@@ -187,9 +187,9 @@ BiblioHub è un'applicazione desktop in Python e tkinter. La logica di ogni stru
 ### Versioni attuali
 
 - Applicazione 1.1.0.
-- Scraper Insegnamenti 6.7.
+- Scraper Insegnamenti 6.8.
 - PO Line → Excel/CSV 2.1.
 - Attestazioni di pagamento 3.1.
-- Merge bibliografie 1.1.
+- Merge bibliografie 1.2.
 
 Dopo una modifica a bibliohub/guide.py il manuale si rigenera, dalla cartella del progetto, con: python docs/build_manual.py

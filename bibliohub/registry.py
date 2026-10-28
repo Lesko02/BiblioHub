@@ -17,7 +17,7 @@ TOOLS = [
     ToolInfo(
         key="scraper",
         title="Scraper Insegnamenti",
-        version="6.7",
+        version="6.8",
         icon="🔎",
         description="Estrae docenti e bibliografia d'esame dagli elenchi "
                     "insegnamenti A-Z. Si scelgono anno accademico e ordinamento, "
@@ -51,11 +51,11 @@ TOOLS = [
     ToolInfo(
         key="merge",
         title="Merge bibliografie",
-        version="1.1",
+        version="1.2",
         icon="🔀",
         description="Confronta due estrazioni dello Scraper ignorando "
-                    "maiuscole e minuscole. Mantiene Ordinamento, Periodo ed "
-                    "Edizione e può mostrare solo le differenze oppure solo i testi in comune.",
+                    "maiuscole e minuscole. La stessa risorsa coincide anche se "
+                    "l'ordinamento (anno accademico) è diverso; la colonna resta nel risultato.",
         page="bibliohub.pages.merge_bibliografie:MergeBibliografiePage",
         requires=["pandas", "openpyxl"],
     ),

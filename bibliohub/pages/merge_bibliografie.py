@@ -19,9 +19,9 @@ class MergeBibliografiePage(ToolPage):
     version = merge.VERSION
     description = (
         "Confronta due file dello Scraper con le stesse intestazioni di colonna. "
-        "Guarda solo il testo delle celle, non la formattazione, e tratta "
-        "«Rossi» e «rossi» come lo stesso valore. Ordinamento, Periodo ed Edizione "
-        "restano nel risultato e distinguono due adozioni diverse."
+        "Guarda solo il testo della risorsa, non la formattazione, e tratta "
+        "«Rossi» e «rossi» come lo stesso valore. L'ordinamento, cioè l'anno "
+        "accademico dell'elenco, resta nel risultato ma non distingue due righe."
     )
 
     def build(self):

@@ -102,11 +102,12 @@ CHAPTERS = [
                 "Ordinamento è il titolo della tabella sul sito, senza la parola "
                 "Immatricolati. Per esempio: a.a. 2026/27 (FAA).",
                 "Ogni a capo della pagina, quello del tag br, resta una riga. "
-                "Dentro la stessa riga, a) a- a. e 1) 1- 1. (fino a 10) vengono divisi ancora.",
+                "Dentro la stessa riga, a) a- e 1) 1- 1. (fino a 10) vengono divisi ancora.",
                 "Data è l'ultimo anno tra il 1900 e il 2099 della citazione, di solito "
                 "l'anno di pubblicazione in fondo. «dal 1943 al 2003, Bologna, 2006» "
                 "resta 2006. Un anno come (1797) accanto all'autore resta fuori.",
-                "«a) … 2015; b) … 2017», «a- … b-» e «a. … b.» sulla stessa riga producono una riga per voce. "
+                "«a) … 2015; b) … 2017» e «1. … 2.» sulla stessa riga producono una riga per voce. "
+                "«a. … b.» resta una sola riga: il punto dopo la lettera può essere un autore. "
                 "Due libri separati solo da un a capo restano due righe anche senza elenco.",
                 "Un'edizione non attiva è una riga con Descrizione «Edizione non attiva», "
                 "in giallo e in grassetto.",
@@ -123,7 +124,7 @@ CHAPTERS = [
               "Il confronto distingue maiuscole e minuscole. Il risultato ha Origine "
               "Left o Right e omette Periodo ed Edizione."),
             P("Per il confronto tra un anno e l'altro usa lo strumento Merge bibliografie: "
-              "ignora le maiuscole e tiene Ordinamento, Periodo ed Edizione."),
+              "ignora le maiuscole. L'ordinamento resta in colonna e non entra nel confronto."),
             NOTES(
                 "File LEFT e file RIGHT sono i due Excel. Se sono identici, il registro "
                 "lo dice e non viene scritto un file.",
@@ -206,9 +207,10 @@ CHAPTERS = [
         "Merge bibliografie",
         "Merge bibliografie",
         [
-            P("Confronta due Excel prodotti dallo Scraper. Guarda il testo delle celle, "
+            P("Confronta due Excel prodotti dallo Scraper. Guarda il testo della risorsa, "
               "non i colori, e tratta «Rossi» e «rossi» come lo stesso valore. "
-              "Ordinamento, Periodo ed Edizione distinguono due adozioni diverse."),
+              "L'ordinamento (anno accademico) resta visibile e non entra nel confronto. "
+              "Periodo ed Edizione distinguono due adozioni diverse."),
             STEPS(
                 "In Estrazione precedente carica l'Excel dell'anno vecchio. "
                 "Nel risultato le righe solo di questo file sono Left.",
@@ -236,7 +238,8 @@ CHAPTERS = [
                 "Descrizione, Data, ISBN. Se manca Ordinamento, il confronto prosegue e la "
                 "colonna resta vuota.",
                 "Due righe sono la stessa risorsa quando coincidono, a meno delle maiuscole, "
-                "Ordinamento, Periodo, Edizione, Docente, Descrizione, Data e ISBN.",
+                "Periodo, Edizione, Docente, Descrizione, Data e ISBN. "
+                "Un ordinamento diverso non le rende diverse.",
                 "La scheda Merge dentro lo Scraper è il confronto precedente: distingue le "
                 "maiuscole e non riporta Periodo ed Edizione.",
             ),
@@ -255,7 +258,7 @@ CHAPTERS = [
             P("Data resta vuota quando nella citazione non c'è un anno tra il 1900 e il 2099. "
               "Se l'anno è quello del titolo e più avanti c'è l'anno di stampa, in colonna "
               "finisce l'anno di stampa. Due citazioni sulla stessa riga, senza un elenco "
-              "a) a- a. o 1) 1- 1., restano una sola riga. Un a capo della pagina le divide comunque."),
+              "a) a- o 1) 1- 1., restano una sola riga. Un a capo della pagina le divide comunque."),
             H("File aperto"),
             P("Excel o Word tengono il file bloccato. Chiudi il documento e rilancia. "
               "Il messaggio indica il percorso che non si è potuto scrivere."),

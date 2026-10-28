@@ -1,17 +1,18 @@
 """
-Merge bibliografie (v1.1).
+Merge bibliografie (v1.2).
 
 Confronta due Excel prodotti dallo Scraper (stesse intestazioni di colonna).
-Il confronto è sul testo delle celle, non sulla formattazione Excel, e ignora
-maiuscole/minuscole. Ordinamento, Periodo ed Edizione fanno parte della chiave,
-insieme a Docente, Descrizione, Data e ISBN.
+Il confronto è sul testo della risorsa, non sulla formattazione Excel, e ignora
+maiuscole/minuscole. Ordinamento (l'anno accademico dell'elenco) è mostrato ma
+non fa parte della chiave: la stessa risorsa coincide anche se l'ordinamento cambia.
+Periodo, Edizione, Docente, Descrizione, Data e ISBN fanno parte della chiave.
 
 Modi:
   diff    solo le righe presenti in una sola estrazione (Left / Right)
   common  solo le righe presenti in entrambe (In comune)
 
 Left = estrazione precedente, Right = estrazione corrente.
-Le righe "In comune" riportano il testo del file corrente.
+Le righe "In comune" riportano il testo del file corrente, ordinamento compreso.
 """
 
 from openpyxl import Workbook
@@ -22,7 +23,7 @@ import pandas as pd
 
 from ..values import as_text
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 MODE_DIFF = "diff"
 MODE_COMMON = "common"
@@ -35,7 +36,7 @@ REQUIRED_COLUMNS = [
     "Insegnamento", "Periodo", "Edizione",
     "Docente", "Descrizione", "Data", "ISBN",
 ]
-COMPARE_COLUMNS = ["Ordinamento", "Periodo", "Edizione", "Docente", "Descrizione", "Data", "ISBN"]
+COMPARE_COLUMNS = ["Periodo", "Edizione", "Docente", "Descrizione", "Data", "ISBN"]
 OUTPUT_COLUMNS = [
     "Insegnamento", "Ordinamento", "Periodo", "Edizione",
     "Docente", "Descrizione", "Data", "ISBN", "Origine",
@@ -176,7 +177,7 @@ def compare_bibliografie(left_path, right_path, output_path, mode=MODE_DIFF,
     output_rows = []
     counts = {ORIGIN_LEFT: 0, ORIGIN_RIGHT: 0, ORIGIN_COMMON: 0}
 
-    log("Confronto del testo in corso (maiuscole e minuscole ignorate)...")
+    log("Confronto del testo in corso (maiuscole e minuscole ignorate, ordinamento escluso)...")
 
     for course_key in course_order:
         left_rows = left_groups.get(course_key, [])
