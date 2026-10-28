@@ -102,12 +102,12 @@ CHAPTERS = [
                 "Ordinamento è il titolo della tabella sul sito, senza la parola "
                 "Immatricolati. Per esempio: a.a. 2026/27 (FAA).",
                 "Ogni a capo della pagina, quello del tag br, resta una riga. "
-                "Dentro la stessa riga, a) … z) e 1) … 10) vengono divisi ancora.",
+                "Dentro la stessa riga, a) a- a. e 1) 1- 1. (fino a 10) vengono divisi ancora.",
                 "Data è l'ultimo anno tra il 1900 e il 2099 della citazione, di solito "
                 "l'anno di pubblicazione in fondo. «dal 1943 al 2003, Bologna, 2006» "
                 "resta 2006. Un anno come (1797) accanto all'autore resta fuori.",
-                "«a) … 2015; b) … 2017» sulla stessa riga produce due righe, 2015 e 2017. "
-                "Due libri separati solo da un a capo restano due righe anche senza a) o 1).",
+                "«a) … 2015; b) … 2017», «a- … b-» e «a. … b.» sulla stessa riga producono una riga per voce. "
+                "Due libri separati solo da un a capo restano due righe anche senza elenco.",
                 "Un'edizione non attiva è una riga con Descrizione «Edizione non attiva», "
                 "in giallo e in grassetto.",
                 "Le celle sono testo: i numeri non escono con la coda .0.",
@@ -254,8 +254,8 @@ CHAPTERS = [
             H("Data vuota o anno inatteso"),
             P("Data resta vuota quando nella citazione non c'è un anno tra il 1900 e il 2099. "
               "Se l'anno è quello del titolo e più avanti c'è l'anno di stampa, in colonna "
-              "finisce l'anno di stampa. Due citazioni sulla stessa riga, senza a) … z) "
-              "o 1) … 10), restano una sola riga. Un a capo della pagina le divide comunque."),
+              "finisce l'anno di stampa. Due citazioni sulla stessa riga, senza un elenco "
+              "a) a- a. o 1) 1- 1., restano una sola riga. Un a capo della pagina le divide comunque."),
             H("File aperto"),
             P("Excel o Word tengono il file bloccato. Chiudi il documento e rilancia. "
               "Il messaggio indica il percorso che non si è potuto scrivere."),

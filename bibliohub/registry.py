@@ -17,7 +17,7 @@ TOOLS = [
     ToolInfo(
         key="scraper",
         title="Scraper Insegnamenti",
-        version="6.6",
+        version="6.7",
         icon="🔎",
         description="Estrae docenti e bibliografia d'esame dagli elenchi "
                     "insegnamenti A-Z. Si scelgono anno accademico e ordinamento, "
