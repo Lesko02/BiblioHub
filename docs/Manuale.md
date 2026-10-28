@@ -20,7 +20,7 @@ Le ultime cartelle e le opzioni restano in %APPDATA%\BiblioHub\settings.json. Al
 
 ### I quattro strumenti
 
-- Scraper Insegnamenti 6.6 — bibliografie dal sito dei corsi di laurea.
+- Scraper Insegnamenti 6.7 — bibliografie dal sito dei corsi di laurea.
 - PO Line → Excel/CSV 2.1 — linee d'ordine Alma in CSV ed Excel.
 - Attestazioni di pagamento 3.1 — Word, PDF e testo dell'email.
 - Merge bibliografie 1.1 — confronto tra due estrazioni dello scraper.
@@ -45,9 +45,9 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 
 - Colonne: Insegnamento, Ordinamento, Periodo, Edizione, Docente, Descrizione, Data, ISBN.
 - Ordinamento è il titolo della tabella sul sito, senza la parola Immatricolati. Per esempio: a.a. 2026/27 (FAA).
-- Ogni a capo della pagina, quello del tag br, resta una riga. Dentro la stessa riga, a) … z) e 1) … 10) vengono divisi ancora.
+- Ogni a capo della pagina, quello del tag br, resta una riga. Dentro la stessa riga, a) a- a. e 1) 1- 1. (fino a 10) vengono divisi ancora.
 - Data è l'ultimo anno tra il 1900 e il 2099 della citazione, di solito l'anno di pubblicazione in fondo. «dal 1943 al 2003, Bologna, 2006» resta 2006. Un anno come (1797) accanto all'autore resta fuori.
-- «a) … 2015; b) … 2017» sulla stessa riga produce due righe, 2015 e 2017. Due libri separati solo da un a capo restano due righe anche senza a) o 1).
+- «a) … 2015; b) … 2017», «a- … b-» e «a. … b.» sulla stessa riga producono una riga per voce. Due libri separati solo da un a capo restano due righe anche senza elenco.
 - Un'edizione non attiva è una riga con Descrizione «Edizione non attiva», in giallo e in grassetto.
 - Le celle sono testo: i numeri non escono con la coda .0.
 
@@ -155,7 +155,7 @@ L'URL deve iniziare con http. Se il registro si ferma su «Nessun corso trovato�
 
 ### Data vuota o anno inatteso
 
-Data resta vuota quando nella citazione non c'è un anno tra il 1900 e il 2099. Se l'anno è quello del titolo e più avanti c'è l'anno di stampa, in colonna finisce l'anno di stampa. Due citazioni sulla stessa riga, senza a) … z) o 1) … 10), restano una sola riga. Un a capo della pagina le divide comunque.
+Data resta vuota quando nella citazione non c'è un anno tra il 1900 e il 2099. Se l'anno è quello del titolo e più avanti c'è l'anno di stampa, in colonna finisce l'anno di stampa. Due citazioni sulla stessa riga, senza un elenco a) a- a. o 1) 1- 1., restano una sola riga. Un a capo della pagina le divide comunque.
 
 ### File aperto
 
@@ -187,7 +187,7 @@ BiblioHub è un'applicazione desktop in Python e tkinter. La logica di ogni stru
 ### Versioni attuali
 
 - Applicazione 1.1.0.
-- Scraper Insegnamenti 6.6.
+- Scraper Insegnamenti 6.7.
 - PO Line → Excel/CSV 2.1.
 - Attestazioni di pagamento 3.1.
 - Merge bibliografie 1.1.

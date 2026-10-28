@@ -21,7 +21,7 @@ from openpyxl.styles import Font, PatternFill
 
 from ..values import as_text
 
-VERSION = "6.6"
+VERSION = "6.7"
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
@@ -29,9 +29,14 @@ BULLET_PATTERN = re.compile(r'^\s*(?:[·•◦●○\-–—*]+|o(?![A-Za-z]))\s
 IMMATRICOLATI_PREFIX = re.compile(r"(?i)^immatricolati\s+")
 NELL_ANNO = re.compile(r"(?i)^nell['’]a\.a\.\s*")
 YEAR_PATTERN = re.compile(r'\b((?:19|20)\d{2})\b')
-# Elenco interno alla stessa riga HTML: a) … z) oppure 1) … 10).
+# Elenco interno alla stessa riga: a) a- a. e 1) 1- 1. fino a 10.
 # Il marcatore resta nel testo della nuova riga.
-LIST_SPLIT = re.compile(r'\s+(?=(?:10|[1-9]|[a-zA-Z])\))')
+_LIST_PAREN = re.compile(r'(?<!\S)(?:10|[1-9]|[A-Za-z])\)')
+_LIST_DASH = re.compile(r'(?<!\S)(?:10|[1-9]|[A-Za-z])-(?=\s)')
+_LIST_NUM_DOT = re.compile(r'(?<!\S)(?:10|[1-9])\.(?=\s)')
+_LIST_LETTER_DOT = re.compile(r'(?<!\S)([A-Za-z])\.(?=\s)')
+# p. e n. sono abbreviazioni («pagina», «numero»), non voci di elenco.
+_DOT_ABBREV = frozenset({"p", "n"})
 ALL_ORDINAMENTI = "Tutti gli ordinamenti"
 ISBN_PATTERN = re.compile(r'\b(97[89]\d{10}|97[89]-\d{2}-\d{5}-\d{2}-\d|97[89]-\d{10})\b')
 
@@ -122,13 +127,49 @@ def publication_year(text) -> str:
     return years[-1] if years else ""
 
 
+def _letter_dot_cuts(line: str) -> set[int]:
+    """
+    a. b. c. è un elenco. A. Lepre e G. Sabbatucci, V. Vidotto sono iniziali:
+    una maiuscola isolata, o due lettere non consecutive, non si taglia.
+    """
+    hits = [(m.start(), m.group(1)) for m in _LIST_LETTER_DOT.finditer(line)]
+    cuts = set()
+    index = 0
+    while index < len(hits):
+        end = index
+        while end + 1 < len(hits) and (
+            hits[end + 1][1].lower() == chr(ord(hits[end][1].lower()) + 1)
+        ):
+            end += 1
+        run = hits[index:end + 1]
+        if len(run) >= 2:
+            cuts.update(pos for pos, _letter in run if pos > 0)
+        else:
+            pos, letter = run[0]
+            if letter.islower() and letter.lower() not in _DOT_ABBREV and pos > 0:
+                cuts.add(pos)
+        index = end + 1
+    return cuts
+
+
+def _split_list_line(line: str) -> list[str]:
+    cuts = {m.start() for m in _LIST_PAREN.finditer(line) if m.start() > 0}
+    cuts.update(m.start() for m in _LIST_DASH.finditer(line) if m.start() > 0)
+    cuts.update(m.start() for m in _LIST_NUM_DOT.finditer(line) if m.start() > 0)
+    cuts.update(_letter_dot_cuts(line))
+    if not cuts:
+        return [line]
+    points = [0, *sorted(cuts), len(line)]
+    return [line[start:end].strip() for start, end in zip(points, points[1:]) if line[start:end].strip()]
+
+
 def split_resources(text) -> list[str]:
     """
     Una riga per ogni interruzione già presente nel testo.
 
     Quelle interruzioni arrivano dai <br> della pagina: get_text(separator='\\n')
     le traduce in «a capo» e qui non vengono più riunite. Dentro una stessa riga,
-    un elenco a) … z) o 1) … 10) produce una riga in più per voce.
+    un elenco a) a- a. oppure 1) 1- 1. (fino a 10) produce una riga in più per voce.
     """
     if not isinstance(text, str):
         text = str(text)
@@ -137,10 +178,7 @@ def split_resources(text) -> list[str]:
         line = BULLET_PATTERN.sub("", raw_line.strip()).strip()
         if not line or "http://" in line or "https://" in line:
             continue
-        for piece in LIST_SPLIT.split(line):
-            piece = piece.strip()
-            if piece:
-                rows.append(piece)
+        rows.extend(_split_list_line(line))
     return rows
 
 

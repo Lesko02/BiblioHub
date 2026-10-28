@@ -14,7 +14,7 @@ class ScraperPage(ToolPage):
     version = scraper.VERSION
     description = ("Scraping: raccoglie docente e bibliografia dall'elenco A-Z. Anno accademico "
                    "e ordinamento si scelgono come sul sito. Ogni a capo della pagina resta una riga; "
-                   "un elenco a) b) o 1) … 10) nella stessa riga viene diviso ancora. "
+                   "un elenco a) a- a. o 1) 1- 1. nella stessa riga viene diviso ancora. "
                    "L'anno di pubblicazione è quello in fondo alla citazione. "
                    "Le edizioni non attive sono in giallo.  Merge: solo le righe diverse.")
 
