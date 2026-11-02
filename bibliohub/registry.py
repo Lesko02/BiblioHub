@@ -17,11 +17,11 @@ TOOLS = [
     ToolInfo(
         key="scraper",
         title="Scraper Insegnamenti",
-        version="6.8",
+        version="6.9",
         icon="🔎",
         description="Estrae docenti e bibliografia d'esame dagli elenchi "
                     "insegnamenti A-Z. Si scelgono anno accademico e ordinamento, "
-                    "come sul sito. Include il merge originale.",
+                    "come sul sito, e il semestre. Include il merge originale.",
         page="bibliohub.pages.scraper:ScraperPage",
         requires=["pandas", "openpyxl", "requests", "bs4"],
     ),

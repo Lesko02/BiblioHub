@@ -20,7 +20,7 @@ Le ultime cartelle e le opzioni restano in %APPDATA%\BiblioHub\settings.json. Al
 
 ### I quattro strumenti
 
-- Scraper Insegnamenti 6.8 — bibliografie dal sito dei corsi di laurea.
+- Scraper Insegnamenti 6.9 — bibliografie dal sito dei corsi di laurea.
 - PO Line → Excel/CSV 2.1 — linee d'ordine Alma in CSV ed Excel.
 - Attestazioni di pagamento 3.1 — Word, PDF e testo dell'email.
 - Merge bibliografie 1.2 — confronto tra due estrazioni dello scraper.
@@ -34,12 +34,13 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 ### Come si usa
 
 1. Incolla l'URL della pagina elenco. Finisce di solito con elenco-insegnamenti-z. Esempio: la pagina di Informatica o di Mediazione.
-2. Scegli il file Excel di output, oppure lascialo vuoto. In quel caso il file si chiama Elenco_CORSO_updated.xlsx e finisce nell'ultima cartella usata.
+2. Scegli il file Excel di output, oppure lascialo vuoto. In quel caso il file si chiama Elenco_CORSO_ANNO_updated.xlsx, per esempio Elenco_informatica_2026-2027_updated.xlsx, e finisce nell'ultima cartella usata. Con Primo o Secondo semestre il nome lo riporta: Elenco_informatica_2026-2027_Primo_semestre_updated.xlsx.
 3. Premi Carica elenco. Si riempiono Anno accademico e Ordinamento, gli stessi menu del sito.
 4. Scegli l'anno. Gli ordinamenti di quell'anno vengono ricaricati.
 5. Scegli un ordinamento, oppure Tutti gli ordinamenti per scaricare ogni tabella.
-6. Premi Avvia. Nel registro compare il corso in lavorazione. Interrompi salva le righe già raccolte.
-7. Apri risultato apre l'Excel.
+6. Scegli il periodo: Primo semestre, Secondo semestre, Annuali o Qualsiasi. Conta la colonna Periodo di distribuzione dell'elenco.
+7. Premi Avvia. Nel registro compare il corso in lavorazione. Interrompi salva le righe già raccolte.
+8. Apri risultato apre l'Excel.
 
 ### Cosa aspettarsi
 
@@ -53,7 +54,9 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 
 ### Da tenere presente
 
-- Senza Carica elenco, Avvia usa l'anno già aperto nella pagina e tutti gli ordinamenti.
+- Senza Carica elenco, Avvia usa l'anno già aperto nella pagina e tutti gli ordinamenti. Il nome del file prende comunque quell'anno.
+- Il nome automatico si aggiorna quando cambiano anno o periodo. Un nome scritto a mano o scelto con Sfoglia resta quello.
+- Con Primo semestre, Secondo semestre o Annuali i corsi degli altri periodi non vengono aperti: lo scraping è più breve. Annuali comprende i corsi annuali e quelli su più periodi. I corsi con periodo non definito o senza periodo compaiono solo con Qualsiasi.
 - Serve la rete. Un corso il cui indirizzo non risponde viene saltato e segnalato nel registro.
 - Lo stesso indirizzo di scheda, se compare in più ordinamenti, viene letto una sola volta.
 - Chiudi l'Excel di destinazione prima di rilanciare: un file aperto non si può sovrascrivere.
@@ -187,7 +190,7 @@ BiblioHub è un'applicazione desktop in Python e tkinter. La logica di ogni stru
 ### Versioni attuali
 
 - Applicazione 1.1.0.
-- Scraper Insegnamenti 6.8.
+- Scraper Insegnamenti 6.9.
 - PO Line → Excel/CSV 2.1.
 - Attestazioni di pagamento 3.1.
 - Merge bibliografie 1.2.
