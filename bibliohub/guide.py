@@ -95,7 +95,7 @@ CHAPTERS = [
                 "gli stessi menu del sito.",
                 "Scegli l'anno. Gli ordinamenti di quell'anno vengono ricaricati.",
                 "Scegli un ordinamento, oppure Tutti gli ordinamenti per scaricare ogni tabella.",
-                "Scegli il periodo: Primo semestre, Secondo semestre o Qualsiasi. "
+                "Scegli il periodo: Primo semestre, Secondo semestre, Annuali o Qualsiasi. "
                 "Conta la colonna Periodo di distribuzione dell'elenco.",
                 "Premi Avvia. Nel registro compare il corso in lavorazione. "
                 "Interrompi salva le righe già raccolte.",
@@ -123,9 +123,10 @@ CHAPTERS = [
                 "Il nome del file prende comunque quell'anno.",
                 "Il nome automatico si aggiorna quando cambiano anno o periodo. "
                 "Un nome scritto a mano o scelto con Sfoglia resta quello.",
-                "Con Primo o Secondo semestre i corsi degli altri periodi non vengono aperti: "
-                "lo scraping è più breve. I corsi annuali, su più periodi o con periodo "
-                "non definito compaiono solo con Qualsiasi.",
+                "Con Primo semestre, Secondo semestre o Annuali i corsi degli altri periodi "
+                "non vengono aperti: lo scraping è più breve. Annuali comprende i corsi "
+                "annuali e quelli su più periodi. I corsi con periodo non definito o "
+                "senza periodo compaiono solo con Qualsiasi.",
                 "Serve la rete. Un corso il cui indirizzo non risponde viene saltato e segnalato nel registro.",
                 "Lo stesso indirizzo di scheda, se compare in più ordinamenti, viene letto una sola volta.",
                 "Chiudi l'Excel di destinazione prima di rilanciare: un file aperto non si può sovrascrivere.",

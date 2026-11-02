@@ -37,7 +37,13 @@ _LIST_DASH = re.compile(r'(?<!\S)(?:10|[1-9]|[A-Za-z])-(?=\s)')
 _LIST_NUM_DOT = re.compile(r'(?<!\S)(?:10|[1-9])\.(?=\s)')
 ALL_ORDINAMENTI = "Tutti gli ordinamenti"
 ANY_PERIODO = "Qualsiasi"
-PERIODI = ("Primo semestre", "Secondo semestre", ANY_PERIODO)
+# Scelta → valori della colonna «Periodo di distribuzione» del sito (in minuscolo).
+PERIODO_VALUES = {
+    "Primo semestre": {"primo semestre"},
+    "Secondo semestre": {"secondo semestre"},
+    "Annuali": {"annuale", "su più periodi"},
+}
+PERIODI = (*PERIODO_VALUES, ANY_PERIODO)
 ACADEMIC_YEAR = re.compile(r'((?:19|20)\d{2})\s*[/\-]\s*((?:19|20)?\d{2})')
 ISBN_PATTERN = re.compile(r'\b(97[89]\d{10}|97[89]-\d{2}-\d{5}-\d{2}-\d|97[89]-\d{10})\b')
 
@@ -201,7 +207,8 @@ def fetch_course_list(page_url, log=print, session=None, year_id=None,
     distribuzione' della tabella; se assente resta stringa vuota.
     'ordinamento' è il titolo dell'accordion che contiene la tabella.
     Il filtro sul periodo agisce qui, prima di aprire le schede dei corsi:
-    «annuale», «Su più periodi» e «Non definito» restano solo con Qualsiasi.
+    Annuali comprende «annuale» e «Su più periodi»; «Non definito» e le celle
+    vuote restano solo con Qualsiasi.
     """
     page_url = page_url_for_year(page_url, year_id)
     http = session or requests
@@ -281,8 +288,8 @@ def fetch_course_list(page_url, log=print, session=None, year_id=None,
         log(f"Trovati {len(courses)} corsi nell'elenco.")
 
     if periodo_filter and periodo_filter != ANY_PERIODO:
-        wanted = periodo_filter.casefold()
-        courses = [course for course in courses if course[2].strip().casefold() == wanted]
+        wanted = PERIODO_VALUES.get(periodo_filter, {periodo_filter.casefold()})
+        courses = [course for course in courses if course[2].strip().casefold() in wanted]
         log(f"Filtro periodo «{periodo_filter}»: {len(courses)} corsi.")
     return courses
 

@@ -78,8 +78,8 @@ class ScraperPage(ToolPage):
             self.register_busy(rb)
         ttk.Label(
             tab,
-            text="Periodo di distribuzione dell'elenco. I corsi di altri periodi non vengono aperti; "
-                 "annuali e su più periodi restano solo con «Qualsiasi».",
+            text="Periodo di distribuzione dell'elenco. I corsi di altri periodi non vengono aperti. "
+                 "«Annuali» comprende anche i corsi su più periodi.",
             style="CardMuted.TLabel",
         ).grid(row=8, column=1, columnspan=2, sticky="w", pady=(0, 4))
 

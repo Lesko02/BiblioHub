@@ -38,7 +38,7 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 3. Premi Carica elenco. Si riempiono Anno accademico e Ordinamento, gli stessi menu del sito.
 4. Scegli l'anno. Gli ordinamenti di quell'anno vengono ricaricati.
 5. Scegli un ordinamento, oppure Tutti gli ordinamenti per scaricare ogni tabella.
-6. Scegli il periodo: Primo semestre, Secondo semestre o Qualsiasi. Conta la colonna Periodo di distribuzione dell'elenco.
+6. Scegli il periodo: Primo semestre, Secondo semestre, Annuali o Qualsiasi. Conta la colonna Periodo di distribuzione dell'elenco.
 7. Premi Avvia. Nel registro compare il corso in lavorazione. Interrompi salva le righe già raccolte.
 8. Apri risultato apre l'Excel.
 
@@ -56,7 +56,7 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 
 - Senza Carica elenco, Avvia usa l'anno già aperto nella pagina e tutti gli ordinamenti. Il nome del file prende comunque quell'anno.
 - Il nome automatico si aggiorna quando cambiano anno o periodo. Un nome scritto a mano o scelto con Sfoglia resta quello.
-- Con Primo o Secondo semestre i corsi degli altri periodi non vengono aperti: lo scraping è più breve. I corsi annuali, su più periodi o con periodo non definito compaiono solo con Qualsiasi.
+- Con Primo semestre, Secondo semestre o Annuali i corsi degli altri periodi non vengono aperti: lo scraping è più breve. Annuali comprende i corsi annuali e quelli su più periodi. I corsi con periodo non definito o senza periodo compaiono solo con Qualsiasi.
 - Serve la rete. Un corso il cui indirizzo non risponde viene saltato e segnalato nel registro.
 - Lo stesso indirizzo di scheda, se compare in più ordinamenti, viene letto una sola volta.
 - Chiudi l'Excel di destinazione prima di rilanciare: un file aperto non si può sovrascrivere.
