@@ -21,7 +21,7 @@ from openpyxl.styles import Font, PatternFill
 
 from ..values import as_text
 
-VERSION = "6.8"
+VERSION = "6.9"
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
@@ -36,6 +36,9 @@ _LIST_PAREN = re.compile(r'(?<!\S)(?:10|[1-9]|[A-Za-z])\)')
 _LIST_DASH = re.compile(r'(?<!\S)(?:10|[1-9]|[A-Za-z])-(?=\s)')
 _LIST_NUM_DOT = re.compile(r'(?<!\S)(?:10|[1-9])\.(?=\s)')
 ALL_ORDINAMENTI = "Tutti gli ordinamenti"
+ANY_PERIODO = "Qualsiasi"
+PERIODI = ("Primo semestre", "Secondo semestre", ANY_PERIODO)
+ACADEMIC_YEAR = re.compile(r'((?:19|20)\d{2})\s*[/\-]\s*((?:19|20)?\d{2})')
 ISBN_PATTERN = re.compile(r'\b(97[89]\d{10}|97[89]-\d{2}-\d{5}-\d{2}-\d|97[89]-\d{10})\b')
 
 SCRAPING_COLUMNS = ['Insegnamento', 'Ordinamento', 'Periodo', 'Edizione',
@@ -154,10 +157,34 @@ def split_resources(text) -> list[str]:
     return rows
 
 
-def default_output_name(page_url):
-    domain_first_part = urlparse(page_url).netloc.split('.')[0]
-    safe_name = re.sub(r'[^a-zA-Z0-9\-_]', '_', domain_first_part)
-    return f"Elenco_{safe_name}_updated.xlsx"
+def _safe_part(text) -> str:
+    return re.sub(r'[^a-zA-Z0-9\-]+', '_', text or '').strip('_')
+
+
+def year_file_part(year_label) -> str:
+    """«A.A. 2026/2027» → «2026-2027»: la barra non è ammessa nei nomi di file."""
+    match = ACADEMIC_YEAR.search(year_label or '')
+    if match:
+        return f"{match.group(1)}-{match.group(2)}"
+    return _safe_part(year_label)
+
+
+def default_output_name(page_url, year_label="", periodo=""):
+    """Elenco_<corso>[_<anno>][_<periodo>]_updated.xlsx"""
+    parts = [_safe_part(urlparse(page_url).netloc.split('.')[0]), year_file_part(year_label)]
+    if periodo and periodo != ANY_PERIODO:
+        parts.append(_safe_part(periodo))
+    return "Elenco_" + "_".join(p for p in parts if p) + "_updated.xlsx"
+
+
+def selected_year_label(page_url, session=None) -> str:
+    """Anno accademico già selezionato nella pagina, quando non è stato scelto nel menu."""
+    try:
+        choices = fetch_page_choices(page_url, log=lambda _m: None, session=session)
+    except Exception:
+        return ""
+    return next((label for label, value in choices["years"]
+                 if value == choices["selected"]), "")
 
 
 # ╔══════════════════════════════════════════════════════════╗
@@ -165,7 +192,7 @@ def default_output_name(page_url):
 # ╚══════════════════════════════════════════════════════════╝
 
 def fetch_course_list(page_url, log=print, session=None, year_id=None,
-                      ordinamento_filter=None):
+                      ordinamento_filter=None, periodo_filter=None):
     """
     Visita la pagina elenco insegnamenti A-Z di Unimi e raccoglie
     tutti i corsi dalle tabelle 'table.table-insegnamenti'.
@@ -173,6 +200,8 @@ def fetch_course_list(page_url, log=print, session=None, year_id=None,
     Il campo 'periodo' viene letto dalla colonna 'Periodo di
     distribuzione' della tabella; se assente resta stringa vuota.
     'ordinamento' è il titolo dell'accordion che contiene la tabella.
+    Il filtro sul periodo agisce qui, prima di aprire le schede dei corsi:
+    «annuale», «Su più periodi» e «Non definito» restano solo con Qualsiasi.
     """
     page_url = page_url_for_year(page_url, year_id)
     http = session or requests
@@ -250,6 +279,11 @@ def fetch_course_list(page_url, log=print, session=None, year_id=None,
         log(f"Filtro ordinamento «{ordinamento_filter}»: {len(courses)} corsi.")
     else:
         log(f"Trovati {len(courses)} corsi nell'elenco.")
+
+    if periodo_filter and periodo_filter != ANY_PERIODO:
+        wanted = periodo_filter.casefold()
+        courses = [course for course in courses if course[2].strip().casefold() == wanted]
+        log(f"Filtro periodo «{periodo_filter}»: {len(courses)} corsi.")
     return courses
 
 
@@ -426,17 +460,22 @@ def auto_adjust_columns_and_style(filename, inactive_rows):
 
 
 def run_scraping(page_url, output_file, log=print, progress=None, should_stop=None,
-                 delay=0.20, year_id=None, ordinamento=None):
+                 delay=0.20, year_id=None, ordinamento=None, periodo=None):
     """
     Esegue lo scraping completo e salva l'Excel.
     Se interrotto tramite should_stop(), salva comunque i dati raccolti fino a quel punto.
+    output_file può essere una funzione (session) -> percorso, chiamata prima di iniziare.
     Ritorna un dict riassuntivo, oppure None se non sono stati trovati corsi.
     """
     should_stop = should_stop or (lambda: False)
 
     with requests.Session() as session:
+        if callable(output_file):
+            output_file = output_file(session)
+            log(f"📂 Output: {output_file}")
         courses = fetch_course_list(page_url, log, session, year_id=year_id,
-                                    ordinamento_filter=ordinamento)
+                                    ordinamento_filter=ordinamento,
+                                    periodo_filter=periodo)
         if not courses:
             log("Nessun corso trovato. Controlla l'URL e riprova.")
             return None

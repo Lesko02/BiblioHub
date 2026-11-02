@@ -87,11 +87,16 @@ CHAPTERS = [
                 "Incolla l'URL della pagina elenco. Finisce di solito con "
                 "elenco-insegnamenti-z. Esempio: la pagina di Informatica o di Mediazione.",
                 "Scegli il file Excel di output, oppure lascialo vuoto. In quel caso "
-                "il file si chiama Elenco_CORSO_updated.xlsx e finisce nell'ultima cartella usata.",
+                "il file si chiama Elenco_CORSO_ANNO_updated.xlsx, per esempio "
+                "Elenco_informatica_2026-2027_updated.xlsx, e finisce nell'ultima cartella usata. "
+                "Con Primo o Secondo semestre il nome lo riporta: "
+                "Elenco_informatica_2026-2027_Primo_semestre_updated.xlsx.",
                 "Premi Carica elenco. Si riempiono Anno accademico e Ordinamento, "
                 "gli stessi menu del sito.",
                 "Scegli l'anno. Gli ordinamenti di quell'anno vengono ricaricati.",
                 "Scegli un ordinamento, oppure Tutti gli ordinamenti per scaricare ogni tabella.",
+                "Scegli il periodo: Primo semestre, Secondo semestre o Qualsiasi. "
+                "Conta la colonna Periodo di distribuzione dell'elenco.",
                 "Premi Avvia. Nel registro compare il corso in lavorazione. "
                 "Interrompi salva le righe già raccolte.",
                 "Apri risultato apre l'Excel.",
@@ -114,7 +119,13 @@ CHAPTERS = [
                 "Le celle sono testo: i numeri non escono con la coda .0.",
             ),
             NOTES(
-                "Senza Carica elenco, Avvia usa l'anno già aperto nella pagina e tutti gli ordinamenti.",
+                "Senza Carica elenco, Avvia usa l'anno già aperto nella pagina e tutti gli ordinamenti. "
+                "Il nome del file prende comunque quell'anno.",
+                "Il nome automatico si aggiorna quando cambiano anno o periodo. "
+                "Un nome scritto a mano o scelto con Sfoglia resta quello.",
+                "Con Primo o Secondo semestre i corsi degli altri periodi non vengono aperti: "
+                "lo scraping è più breve. I corsi annuali, su più periodi o con periodo "
+                "non definito compaiono solo con Qualsiasi.",
                 "Serve la rete. Un corso il cui indirizzo non risponde viene saltato e segnalato nel registro.",
                 "Lo stesso indirizzo di scheda, se compare in più ordinamenti, viene letto una sola volta.",
                 "Chiudi l'Excel di destinazione prima di rilanciare: un file aperto non si può sovrascrivere.",

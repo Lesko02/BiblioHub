@@ -13,7 +13,7 @@ class ScraperPage(ToolPage):
     title = "Scraper Insegnamenti"
     version = scraper.VERSION
     description = ("Scraping: raccoglie docente e bibliografia dall'elenco A-Z. Anno accademico "
-                   "e ordinamento si scelgono come sul sito. Ogni a capo della pagina resta una riga; "
+                   "e ordinamento si scelgono come sul sito, il periodo con i pulsanti. Ogni a capo della pagina resta una riga; "
                    "un elenco a) a- o 1) 1- 1. nella stessa riga viene diviso ancora. "
                    "L'anno di pubblicazione è quello in fondo alla citazione. "
                    "Le edizioni non attive sono in giallo.  Merge: solo le righe diverse.")
@@ -38,7 +38,8 @@ class ScraperPage(ToolPage):
         self.scrape_out = PathField(
             tab, 2, "File di output (.xlsx)", mode="save", filetypes=XLSX,
             default_ext=".xlsx",
-            hint="Se vuoto: Elenco_<corso>_updated.xlsx nell'ultima cartella usata")
+            hint="Se vuoto: Elenco_<corso>_<anno>_updated.xlsx nell'ultima cartella usata")
+        self._auto_output = None
 
         self._filling = False
         self._year_ids = {}
@@ -63,6 +64,24 @@ class ScraperPage(ToolPage):
                  "«Tutti gli ordinamenti» scarica ogni tabella.",
             style="CardMuted.TLabel",
         ).grid(row=6, column=1, columnspan=2, sticky="w", pady=(0, 4))
+
+        ttk.Label(tab, text="Periodo", style="Card.TLabel").grid(
+            row=7, column=0, sticky="w", padx=(0, 12), pady=4)
+        saved_periodo = self.settings.get(self.key, "periodo", scraper.ANY_PERIODO)
+        self.periodo_var = tk.StringVar(
+            value=saved_periodo if saved_periodo in scraper.PERIODI else scraper.ANY_PERIODO)
+        radios = ttk.Frame(tab, style="Card.TFrame")
+        radios.grid(row=7, column=1, columnspan=2, sticky="w", pady=4)
+        for periodo in scraper.PERIODI:
+            rb = ttk.Radiobutton(radios, text=periodo, value=periodo, variable=self.periodo_var)
+            rb.pack(side="left", padx=(0, 28))
+            self.register_busy(rb)
+        ttk.Label(
+            tab,
+            text="Periodo di distribuzione dell'elenco. I corsi di altri periodi non vengono aperti; "
+                 "annuali e su più periodi restano solo con «Qualsiasi».",
+            style="CardMuted.TLabel",
+        ).grid(row=8, column=1, columnspan=2, sticky="w", pady=(0, 4))
 
         # --- Merge ---
         tab_m = Card(self.tabs)
@@ -107,38 +126,63 @@ class ScraperPage(ToolPage):
                                    parent=self)
             return
 
+        year_label = self.year_var.get().strip()
+        year_id = self._year_ids.get(year_label, "")
+        if not year_id:
+            year_label = ""
+        ordinamento = self.ord_var.get().strip()
+        periodo = self.periodo_var.get()
+
         output = self.scrape_out.get()
-        if not output:
+        auto = not output or output == self._auto_output
+        if auto:
             folder = Path(self.settings.get(self.key, "output_dir", "") or documents_dir())
-            output = str(folder / scraper.default_output_name(url))
-            self.scrape_out.set(output)
-        if Path(output).suffix.lower() != ".xlsx":
+            if self._auto_output:
+                folder = Path(self._auto_output).parent
+            output = None
+            if year_label:
+                output = str(folder / scraper.default_output_name(url, year_label, periodo))
+                self.scrape_out.set(output)
+                self._auto_output = output
+        elif Path(output).suffix.lower() != ".xlsx":
             output = str(Path(output).with_suffix(".xlsx"))
             self.scrape_out.set(output)
 
-        year_id = self._year_ids.get(self.year_var.get().strip(), "")
-        ordinamento = self.ord_var.get().strip()
         self.settings.set(self.key, "url", url)
-        self.settings.set(self.key, "output_dir", str(Path(output).parent))
+        if output:
+            self.settings.set(self.key, "output_dir", str(Path(output).parent))
         self.settings.set(self.key, "year", self.year_var.get().strip())
         self.settings.set(self.key, "ordinamento", ordinamento)
+        self.settings.set(self.key, "periodo", periodo)
         self.settings.save()
 
+        def output_for_page_year(session):
+            label = scraper.selected_year_label(url, session)
+            return str(folder / scraper.default_output_name(url, label, periodo))
+
         def task(log, progress, should_stop):
-            Path(output).parent.mkdir(parents=True, exist_ok=True)
-            return scraper.run_scraping(url, output, log=log, progress=progress,
+            target = output or output_for_page_year
+            if output:
+                Path(output).parent.mkdir(parents=True, exist_ok=True)
+            else:
+                folder.mkdir(parents=True, exist_ok=True)
+            return scraper.run_scraping(url, target, log=log, progress=progress,
                                         should_stop=should_stop, year_id=year_id,
-                                        ordinamento=ordinamento)
+                                        ordinamento=ordinamento, periodo=periodo)
 
         def done(result):
             if result:
+                if not output:
+                    self.scrape_out.set(result["output"])
+                    self._auto_output = result["output"]
                 self.set_result(result["output"])
 
-        year_label = self.year_var.get().strip() or "quello della pagina"
         ord_label = ordinamento or scraper.ALL_ORDINAMENTI
+        out_label = output or "nome automatico con l'anno della pagina"
         self.run_task(task, done, stoppable=True,
-                      start_message=f"🌐 URL: {url}\n📅 Anno: {year_label}\n"
-                                    f"📚 Ordinamento: {ord_label}\n📂 Output: {output}\n")
+                      start_message=f"🌐 URL: {url}\n📅 Anno: {year_label or 'quello della pagina'}\n"
+                                    f"📚 Ordinamento: {ord_label}\n🗓️ Periodo: {periodo}\n"
+                                    f"📂 Output: {out_label}\n")
 
     def _on_year_selected(self, _event=None):
         if self._filling or self.running:
