@@ -26,7 +26,7 @@ from ..values import as_text
 VERSION = "7.0"
 
 # Schede aperte insieme. La pausa resta per ogni worker, dopo la sua GET.
-FETCH_WORKERS = 10
+FETCH_WORKERS = 8
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 

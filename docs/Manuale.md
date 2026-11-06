@@ -59,7 +59,7 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 - Con Primo semestre, Secondo semestre o Annuali i corsi degli altri periodi non vengono aperti: lo scraping è più breve. Annuali comprende i corsi annuali e quelli su più periodi. I corsi con periodo non definito o senza periodo compaiono solo con Qualsiasi.
 - Serve la rete. Un corso il cui indirizzo non risponde viene saltato e segnalato nel registro.
 - Lo stesso indirizzo di scheda, se compare in più ordinamenti, viene letto una sola volta.
-- Le schede si scaricano dieci alla volta, con una pausa di 0,10 secondi dopo ogni scheda. L'Excel resta nello stesso ordine dell'elenco. Interrompi salva solo i corsi già scritti e annulla le schede ancora in coda.
+- Le schede si scaricano otto alla volta, con una pausa di 0,10 secondi dopo ogni scheda. L'Excel resta nello stesso ordine dell'elenco. Interrompi salva solo i corsi già scritti e annulla le schede ancora in coda.
 - Chiudi l'Excel di destinazione prima di rilanciare: un file aperto non si può sovrascrivere.
 
 ### Scheda Merge, in questo strumento
