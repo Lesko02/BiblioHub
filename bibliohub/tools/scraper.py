@@ -10,7 +10,9 @@ righe che differiscono, indicando l'origine (Left / Right).
 """
 
 import re
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import parse_qsl, urlencode, urlparse, urlsplit, urlunsplit
 
 import pandas as pd
@@ -21,7 +23,10 @@ from openpyxl.styles import Font, PatternFill
 
 from ..values import as_text
 
-VERSION = "6.9"
+VERSION = "6.10"
+
+# Schede aperte insieme. La pausa resta per ogni worker, dopo la sua GET.
+FETCH_WORKERS = 3
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
@@ -400,6 +405,41 @@ def scrape_course_data(url, session=None):
     return True, editions_data
 
 
+def _download_in_parallel(urls, delay, workers=FETCH_WORKERS):
+    """
+    Accoda gli URL e ne scarica fino a `workers` alla volta.
+    Ogni worker ha la sua sessione HTTP e, dopo ogni scheda, aspetta `delay` secondi
+    prima della successiva: il picco verso il sito resta `workers` richieste.
+    Il chiamante legge i Future nell'ordine dell'elenco; le righe non dipendono
+    da quale scheda arriva prima.
+    """
+    local = threading.local()
+    sessions = []
+    sessions_lock = threading.Lock()
+
+    def session():
+        http = getattr(local, "http", None)
+        if http is None:
+            http = requests.Session()
+            local.http = http
+            with sessions_lock:
+                sessions.append(http)
+        return http
+
+    def fetch(url):
+        try:
+            return scrape_course_data(url, session())
+        except Exception:
+            return False, []
+        finally:
+            if delay:
+                time.sleep(delay)
+
+    pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="scraper")
+    futures = {url: pool.submit(fetch, url) for url in urls}
+    return pool, futures, sessions
+
+
 def _material_rows(insegnamento, ordinamento, periodo, edition):
     """Trasforma il materiale di un'edizione in righe Excel (una per voce)."""
     rows = []
@@ -492,43 +532,52 @@ def run_scraping(page_url, output_file, log=print, progress=None, should_stop=No
         processed = 0
         stopped = False
         scraped = {}
+        unique_urls = list(dict.fromkeys(course[1] for course in courses))
+        log(f"Download: {FETCH_WORKERS} schede alla volta, pausa {delay:.2f} s per scheda.")
+        pool, futures, http_sessions = _download_in_parallel(unique_urls, delay)
 
-        for idx, (insegnamento, course_url, periodo, ordinamento) in enumerate(courses):
-            if should_stop():
-                stopped = True
-                break
+        try:
+            for idx, (insegnamento, course_url, periodo, ordinamento) in enumerate(courses):
+                if should_stop():
+                    stopped = True
+                    break
 
-            label = f"{insegnamento} — {ordinamento}" if ordinamento else insegnamento
-            log(f"🔍 [{idx + 1}/{len(courses)}] {label}")
-            if course_url not in scraped:
-                scraped[course_url] = scrape_course_data(course_url, session)
-                time.sleep(delay)
-            success, editions = scraped[course_url]
+                label = f"{insegnamento} — {ordinamento}" if ordinamento else insegnamento
+                log(f"🔍 [{idx + 1}/{len(courses)}] {label}")
+                if course_url not in scraped:
+                    scraped[course_url] = futures[course_url].result()
+                success, editions = scraped[course_url]
 
-            if not success:
-                log("   ⏭️ Saltato: errore nel recupero della pagina")
-            else:
-                for ed in editions:
-                    if ed['is_inactive']:
-                        log(f"   ⚠️ [{ed['edizione']}] Edizione non attiva")
-                        inactive_output_rows.add(len(output_rows))
-                        output_rows.append({
-                            'Insegnamento': insegnamento,
-                            'Ordinamento':  ordinamento,
-                            'Periodo':      periodo,
-                            'Edizione':     ed['edizione'],
-                            'Docente':      ed['docente'],
-                            'Descrizione':  'Edizione non attiva',
-                            'Data':         '',
-                            'ISBN':         '',
-                        })
-                    else:
-                        output_rows.extend(
-                            _material_rows(insegnamento, ordinamento, periodo, ed))
+                if not success:
+                    log("   ⏭️ Saltato: errore nel recupero della pagina")
+                else:
+                    for ed in editions:
+                        if ed['is_inactive']:
+                            log(f"   ⚠️ [{ed['edizione']}] Edizione non attiva")
+                            inactive_output_rows.add(len(output_rows))
+                            output_rows.append({
+                                'Insegnamento': insegnamento,
+                                'Ordinamento':  ordinamento,
+                                'Periodo':      periodo,
+                                'Edizione':     ed['edizione'],
+                                'Docente':      ed['docente'],
+                                'Descrizione':  'Edizione non attiva',
+                                'Data':         '',
+                                'ISBN':         '',
+                            })
+                        else:
+                            output_rows.extend(
+                                _material_rows(insegnamento, ordinamento, periodo, ed))
 
-            processed = idx + 1
-            if progress:
-                progress(processed, len(courses))
+                processed = idx + 1
+                if progress:
+                    progress(processed, len(courses))
+        finally:
+            for pending in futures.values():
+                pending.cancel()
+            pool.shutdown(wait=True, cancel_futures=True)
+            for http in http_sessions:
+                http.close()
 
     df_output = pd.DataFrame(output_rows, columns=SCRAPING_COLUMNS)
     df_output.to_excel(output_file, index=False)

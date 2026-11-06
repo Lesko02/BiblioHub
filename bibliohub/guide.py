@@ -129,6 +129,9 @@ CHAPTERS = [
                 "senza periodo compaiono solo con Qualsiasi.",
                 "Serve la rete. Un corso il cui indirizzo non risponde viene saltato e segnalato nel registro.",
                 "Lo stesso indirizzo di scheda, se compare in più ordinamenti, viene letto una sola volta.",
+                "Le schede si scaricano tre alla volta, con una pausa di 0,20 secondi dopo ogni scheda. "
+                "L'Excel resta nello stesso ordine dell'elenco. Interrompi salva solo i corsi "
+                "già scritti e annulla le schede ancora in coda.",
                 "Chiudi l'Excel di destinazione prima di rilanciare: un file aperto non si può sovrascrivere.",
             ),
             H("Scheda Merge, in questo strumento"),
