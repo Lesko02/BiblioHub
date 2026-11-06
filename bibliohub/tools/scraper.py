@@ -23,7 +23,7 @@ from openpyxl.styles import Font, PatternFill
 
 from ..values import as_text
 
-VERSION = "6.11"
+VERSION = "6.12"
 
 # Schede aperte insieme. La pausa resta per ogni worker, dopo la sua GET.
 FETCH_WORKERS = 5
@@ -507,7 +507,7 @@ def auto_adjust_columns_and_style(filename, inactive_rows):
 
 
 def run_scraping(page_url, output_file, log=print, progress=None, should_stop=None,
-                 delay=0.20, year_id=None, ordinamento=None, periodo=None):
+                 delay=0.10, year_id=None, ordinamento=None, periodo=None):
     """
     Esegue lo scraping completo e salva l'Excel.
     Se interrotto tramite should_stop(), salva comunque i dati raccolti fino a quel punto.
