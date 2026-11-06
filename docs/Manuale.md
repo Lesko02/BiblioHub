@@ -20,7 +20,7 @@ Le ultime cartelle e le opzioni restano in %APPDATA%\BiblioHub\settings.json. Al
 
 ### I quattro strumenti
 
-- Scraper Insegnamenti 6.12 — bibliografie dal sito dei corsi di laurea.
+- Scraper Insegnamenti 6.13 — bibliografie dal sito dei corsi di laurea.
 - PO Line → Excel/CSV 2.1 — linee d'ordine Alma in CSV ed Excel.
 - Attestazioni di pagamento 3.1 — Word, PDF e testo dell'email.
 - Merge bibliografie 1.2 — confronto tra due estrazioni dello scraper.
@@ -59,7 +59,7 @@ Legge la pagina «Elenco insegnamenti A-Z» di un corso di laurea UNIMI e scrive
 - Con Primo semestre, Secondo semestre o Annuali i corsi degli altri periodi non vengono aperti: lo scraping è più breve. Annuali comprende i corsi annuali e quelli su più periodi. I corsi con periodo non definito o senza periodo compaiono solo con Qualsiasi.
 - Serve la rete. Un corso il cui indirizzo non risponde viene saltato e segnalato nel registro.
 - Lo stesso indirizzo di scheda, se compare in più ordinamenti, viene letto una sola volta.
-- Le schede si scaricano cinque alla volta, con una pausa di 0,10 secondi dopo ogni scheda. L'Excel resta nello stesso ordine dell'elenco. Interrompi salva solo i corsi già scritti e annulla le schede ancora in coda.
+- Le schede si scaricano sette alla volta, con una pausa di 0,10 secondi dopo ogni scheda. L'Excel resta nello stesso ordine dell'elenco. Interrompi salva solo i corsi già scritti e annulla le schede ancora in coda.
 - Chiudi l'Excel di destinazione prima di rilanciare: un file aperto non si può sovrascrivere.
 
 ### Scheda Merge, in questo strumento
@@ -191,7 +191,7 @@ BiblioHub è un'applicazione desktop in Python e tkinter. La logica di ogni stru
 ### Versioni attuali
 
 - Applicazione 1.1.0.
-- Scraper Insegnamenti 6.12.
+- Scraper Insegnamenti 6.13.
 - PO Line → Excel/CSV 2.1.
 - Attestazioni di pagamento 3.1.
 - Merge bibliografie 1.2.

@@ -23,10 +23,10 @@ from openpyxl.styles import Font, PatternFill
 
 from ..values import as_text
 
-VERSION = "6.12"
+VERSION = "6.13"
 
 # Schede aperte insieme. La pausa resta per ogni worker, dopo la sua GET.
-FETCH_WORKERS = 5
+FETCH_WORKERS = 7
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
