@@ -26,7 +26,7 @@ from ..values import as_text
 VERSION = "7.0"
 
 # Schede aperte insieme. La pausa resta per ogni worker, dopo la sua GET.
-FETCH_WORKERS = 8
+FETCH_WORKERS = 10
 
 DEFAULT_URL = "https://informatica.cdl.unimi.it/it/insegnamenti/elenco-insegnamenti-z"
 
@@ -507,7 +507,7 @@ def auto_adjust_columns_and_style(filename, inactive_rows):
 
 
 def run_scraping(page_url, output_file, log=print, progress=None, should_stop=None,
-                 delay=0.10, year_id=None, ordinamento=None, periodo=None):
+                 delay=0.15, year_id=None, ordinamento=None, periodo=None):
     """
     Esegue lo scraping completo e salva l'Excel.
     Se interrotto tramite should_stop(), salva comunque i dati raccolti fino a quel punto.
