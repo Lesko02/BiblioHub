@@ -1,59 +1,63 @@
 # BiblioHub
 
-Programma Windows per le bibliografie d'esame, gli ordini Alma e le attestazioni di pagamento dell'Università degli Studi di Milano.
+Desktop tools for the library systems of the University of Milan. Exam bibliographies from the course catalogue, Alma purchase orders, and payment attestations, in one window.
 
-Dentro l'app, **ⓘ Guida** in alto a destra spiega la schermata aperta. Il manuale completo è `docs/Manuale_BiblioHub.pdf`.
+<p align="center">
+  <img src="docs/images/home.png" alt="BiblioHub home" width="880">
+</p>
 
-## Scarica e avvia
+The interface is Italian. **ⓘ Guida**, top right, explains the screen you are on. The full manual is [`docs/Manuale_BiblioHub.pdf`](docs/Manuale_BiblioHub.pdf).
 
-**1. Installa Python, se non ce l'hai già**
+## Tools
 
-Apri [python.org/downloads/windows](https://www.python.org/downloads/windows/), scarica Python 3.11 o più nuovo e avvialo. Nella prima schermata spunta **Add python.exe to PATH**, poi Install.
+| | |
+|---|---|
+| **Scraper Insegnamenti 7.0** | Reads an “Elenco insegnamenti A-Z” page and writes one Excel row per bibliography item: course, programme, period, edition, teacher, description, year, ISBN. Academic year and programme follow the site. Period is first semester, second semester, annual (including multi-period), or any. Course pages are fetched ten at a time. Inactive editions stay in the sheet, highlighted. The output file name carries the academic year. |
+| **Merge bibliografie 1.2** | Compares two scraper workbooks. Case is ignored, and the same resource matches even when the programme column differs. That column stays in the result. Differences are marked Left / Right; shared rows can be listed on their own. |
+| **PO Line → Excel/CSV 2.1** | Turns an Alma PO-line export into CSV (semicolon, UTF-8 with BOM) and Excel. The price written out is the list price, with the 15% discount put back. |
+| **Attestazioni di pagamento 3.1** | Filters an invoice table on `data_protocollo`. For each supplier and delivery note it writes a Word attestation from a template, a PDF through Microsoft Word, and the text of the covering email. |
 
-**2. Scarica BiblioHub**
+<p align="center">
+  <img src="docs/images/scraper.png" alt="Scraper Insegnamenti" width="880">
+</p>
 
-Su questa pagina di GitHub premi il pulsante verde **Code**, poi **Download ZIP**. Apri lo ZIP e premi **Estrai tutto**.
+<p align="center">
+  <img src="docs/images/merge.png" alt="Merge bibliografie" width="440">
+  <img src="docs/images/po.png" alt="PO Line to Excel and CSV" width="440">
+</p>
 
-**3. Avvia**
+<p align="center">
+  <img src="docs/images/attestazioni.png" alt="Attestazioni di pagamento" width="880">
+</p>
 
-Apri la cartella appena estratta. Clicca una volta la barra dell'indirizzo in alto (dove c'è il percorso), scrivi `cmd` e premi Invio.
+## Requirements
 
-Nella finestra nera incolla queste due righe, una alla volta, e premi Invio dopo ognuna:
+- Windows 10 or later
+- [Python 3.11](https://www.python.org/downloads/windows/) or later, with **Add python.exe to PATH** selected
+- Microsoft Word, only when attestation PDFs are requested
 
-```bat
-pip install -r requirements.txt
-python main.py
-```
+## Run
 
-Si apre BiblioHub. Le volte successive, dalla stessa cartella, ripeti solo `python main.py`.
-
-Microsoft Word serve solo se generi i PDF delle attestazioni. Se una finestra dice che manca un pacchetto, accetta l'installazione.
-
-Se al passo 3 compare «python non è riconosciuto», chiudi la finestra nera, ripeti il passo 1 controllando la spunta su PATH, poi rifai il passo 3.
-
-## Download and run
-
-**1. Install Python if you don't have it**
-
-Open [python.org/downloads/windows](https://www.python.org/downloads/windows/), download Python 3.11 or newer and run it. On the first screen tick **Add python.exe to PATH**, then Install.
-
-**2. Download BiblioHub**
-
-On this GitHub page click the green **Code** button, then **Download ZIP**. Open the ZIP and click **Extract all**.
-
-**3. Start**
-
-Open the folder you just extracted. Click the address bar at the top, type `cmd` and press Enter.
-
-In the black window paste these two lines, one at a time, and press Enter after each:
+From the project folder:
 
 ```bat
 pip install -r requirements.txt
 python main.py
 ```
 
-BiblioHub opens. Next time, from the same folder, run only `python main.py`.
+Settings are stored in `%APPDATA%\BiblioHub\settings.json`.
 
-Microsoft Word is needed only for attestation PDFs. If a window says a package is missing, accept the install.
+Regenerate the manual from `bibliohub/guide.py` with:
 
-If step 3 says Python is not recognized, close the black window, repeat step 1 and check the PATH box, then do step 3 again.
+```bat
+python docs/build_manual.py
+```
+
+## Layout
+
+| Path | |
+|---|---|
+| `main.py` | Entry point |
+| `bibliohub/tools` | The work. It does not depend on the window |
+| `bibliohub/pages` | Screens |
+| `bibliohub/registry.py` | The tool list and versions |
