@@ -114,6 +114,7 @@ class HomePage(ttk.Frame):
 
         ttk.Label(body, text=f"{APP_NAME} v{APP_VERSION}  ·  Università degli Studi di Milano",
                   style="Muted.TLabel").pack(anchor="w", pady=(22, 0))
+        self._hook_wheel(self)
 
     def _on_body_configure(self, _event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -135,16 +136,27 @@ class HomePage(ttk.Frame):
             self.scrollbar.grid_remove()
             self.canvas.yview_moveto(0)
 
+    def _hook_wheel(self, widget):
+        # On Windows the wheel is delivered to the widget under the pointer.
+        # Cards live inside the canvas, so the page itself has to listen.
+        widget.bind("<MouseWheel>", self._on_wheel, add="+")
+        widget.bind("<Enter>", self._focus_for_wheel, add="+")
+        for child in widget.winfo_children():
+            self._hook_wheel(child)
+
+    def _focus_for_wheel(self, _event):
+        if getattr(self.app, "current_key", None) == "home":
+            self.canvas.focus_set()
+
     def _should_scroll(self) -> bool:
-        # Widgets inside the canvas are invisible to winfo_containing, so the
-        # wheel event was dropped whenever the pointer was over a card.
         if not self.winfo_exists() or not self.winfo_viewable():
             return False
         if getattr(self.app, "current_key", None) != "home":
             return False
-        px, py = self.winfo_pointerxy()
-        x, y = self.winfo_rootx(), self.winfo_rooty()
-        return x <= px < x + self.winfo_width() and y <= py < y + self.winfo_height()
+        # pointerx/y are relative to this page. Screen coordinates disagree
+        # with the window once Windows DPI scaling is on, so the wheel was ignored.
+        px, py = self.winfo_pointerx(), self.winfo_pointery()
+        return 0 <= px < self.winfo_width() and 0 <= py < self.winfo_height()
 
     def _scroll_pixels(self, pixels: int) -> None:
         bbox = self.canvas.bbox("all")
@@ -156,8 +168,18 @@ class HomePage(ttk.Frame):
         top = min(max(top, 0), limit)
         self.canvas.yview_moveto(top / height)
 
+    def _widget_is_inside(self, widget) -> bool:
+        while widget is not None:
+            if widget is self:
+                return True
+            widget = getattr(widget, "master", None)
+        return False
+
     def _on_wheel(self, event):
-        if not self._should_scroll():
+        if not self.winfo_exists() or getattr(self.app, "current_key", None) != "home":
+            return
+        target = getattr(event, "widget", None)
+        if not (self._widget_is_inside(target) or self._should_scroll()):
             return
         # A mouse notch is 120. A trackpad sends many smaller steps; a plain
         # integer division by 120 throws those away and the page never moves.
