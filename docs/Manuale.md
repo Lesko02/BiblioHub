@@ -24,7 +24,7 @@ Le ultime cartelle e le opzioni restano in %APPDATA%\BiblioHub\settings.json. Al
 - PO Line → Excel/CSV 2.1 — linee d'ordine Alma in CSV ed Excel.
 - Attestazioni di pagamento 3.1 — Word, PDF e testo dell'email.
 - Merge bibliografie 1.2 — confronto tra due estrazioni dello scraper.
-- Topografie 1.0 — abbinamento fra bibliografie estratte e registro dei libri d'esame.
+- Topografie 1.1 — abbinamento fra bibliografie estratte e registro dei libri d'esame.
 
 ## Scraper Insegnamenti
 
@@ -156,33 +156,47 @@ Confronta due Excel prodotti dallo Scraper. Guarda il testo della risorsa, non i
 
 Confronta uno o più Excel dello Scraper con un registro di esemplari già segnati come libri d'esame. Il registro è un export di Alma: ogni riga è una copia e il titolo sta in Title (Complete), di solito nella forma «titolo : sottotitolo / autore».
 
-La citazione estratta non ha una forma fissa. Il confronto guarda se le parole del titolo, e dell'autore quando c'è, compaiono nella citazione. Le parole rare pesano di più. Il punteggio va da 0 a 100. Ogni citazione è misurata solo contro i titoli che condividono una sua parola poco comune, e il confronto scorre in un solo filo.
+La citazione estratta non ha una forma fissa. Il punteggio, da 0 a 100, dice quanto il titolo del registro è contenuto in quella riga. Editore, città e note in più non lo abbassano: lo abbassano le parole del titolo che mancano. Ogni citazione è misurata solo contro i titoli che condividono una sua parola poco comune. Il confronto scorre in un solo filo.
+
+### Il punteggio
+
+Il titolo del registro si divide sulla barra: a sinistra le parole del titolo, a destra l'autore. Maiuscole, accenti e punteggiatura non contano. Si ignorano le parole più corte di tre lettere, i numeri e le parole vuote (il, di, the, of).
+
+Ogni parola del titolo pesa in base a quanto è rara nel registro: «adversaire» pesa più di «storia». La copertura è la quota di questo peso ritrovata nella citazione. Se dopo la barra c'è un autore, il punteggio è 82% di copertura più 18% di parole dell'autore ritrovate. Senza autore, è solo la copertura.
+
+Una sola parola trovata, se è corta o molto comune, vale il 45% del punteggio. Una parola lunga con una lettera di differenza conta lo stesso (Mahfuz e Mahfouz). L'iniziale «U.» vale Umberto solo se «Eco» c'è già. Anno uguale: +4 punti; un anno di differenza: +2. Un anno più lontano non toglie punti, perché in bibliografia c'è spesso l'anno dell'opera e a scaffale una ristampa. Il tetto è 100.
+
+### Soglia e scarto
+
+Di ogni citazione restano il titolo col punteggio più alto e il secondo. Lo scarto è la differenza fra i due. In Libri entra la citazione che sta sopra la soglia (di serie 80), con uno scarto maggiore di quello impostato (di serie 8), e col cognome nella citazione quando il titolo ha meno di cinque parole. Il cognome è la parola più lunga dell'autore.
+
+Le altre citazioni vicine finiscono in Da rivedere. Scarto basso: il secondo titolo è ancora entro gli 8 punti, come due livelli dello stesso manuale. Sotto soglia: il punteggio arriva fino a 10 punti sotto la soglia. Autore assente: il titolo è breve e il cognome non c'è, per esempio lo stesso titolo firmato da un'altra persona, o «giornale» dentro «articolo di giornale». Sotto i 70 punti la citazione non viene scritta.
 
 ### Come si usa
 
 1. In Estrazioni dello Scraper aggiungi uno o più Excel. Servono le colonne Insegnamento e Descrizione. Ordinamento, Periodo, Edizione, Docente, Data e ISBN, se ci sono, finiscono nel risultato.
 2. In Registro topografico carica l'export degli esemplari. La colonna Title (Complete) è obbligatoria. Barcode, inventario, collocazione, biblioteca, ubicazione, MMS Id e Dewey vengono ricopiati quando l'intestazione c'è.
-3. Scegli il file di output. Non può essere uno dei file appena caricati.
-4. La soglia, di serie 80, decide quali abbinamenti vanno nel foglio Libri. Lo scarto, di serie 8, manda in Da rivedere i casi in cui il secondo titolo è ancora vicino al primo.
-5. Le citazioni più corte del minimo, o più lunghe del massimo, non vengono confrontate. Di serie il minimo è 25 caratteri e il massimo 400.
-6. Premi Abbina, poi Apri risultato. Interrompi ferma il confronto e salva quanto è già stato abbinato.
+3. Di serie si confronta tutto il registro. Con la casella sull'inventario restano solo le copie inventariate prima della data: le aggiunte più recenti escono dal confronto. Un anno da solo, per esempio 2024, vale il 1° gennaio 2024. La copia inventariata proprio quel giorno resta fuori. Le righe senza data restano.
+4. Scegli il file di output. Non può essere uno dei file appena caricati.
+5. La soglia, di serie 80, decide quali abbinamenti vanno nel foglio Libri. Lo scarto, di serie 8, manda in Da rivedere i casi in cui il secondo titolo è ancora vicino al primo.
+6. Le citazioni più corte del minimo, o più lunghe del massimo, non vengono confrontate. Di serie il minimo è 25 caratteri e il massimo 400.
+7. Premi Abbina, poi Apri risultato. Interrompi ferma il confronto e salva quanto è già stato abbinato.
 
 ### Cosa aspettarsi
 
 - Libri: un esemplare per riga, con barcode, inventario e collocazione, e i corsi in cui la citazione è stata riconosciuta. Il riferimento indica il file, la riga dell'Excel e l'insegnamento.
 - Dettaglio: una riga per ogni citazione abbinata e ogni copia, con il punteggio.
 - Da rivedere: citazioni sotto la soglia ma vicine (fino a 10 punti in meno), citazioni in cui i due titoli migliori sono troppo vicini, e titoli brevi in cui il cognome non compare nella citazione. Il motivo è Sotto soglia (sfondo pesca), Scarto basso o Autore assente (sfondo giallo).
-- Riepilogo: quante righe sono state lette, scartate, abbinate o messe da parte, file per file.
+- Riepilogo: quante righe sono state lette, scartate, abbinate o messe da parte, file per file. Con il filtro sull'inventario indica anche gli esemplari esclusi.
 - Lo stesso titolo presente in più copie produce una riga per copia, con lo stesso punteggio.
 - Il verde in colonna Punteggio è da 90 in su, l'azzurro è sopra la soglia, il pesca è sotto.
 
 ### Da tenere presente
 
-- Maiuscole, accenti e punteggiatura non distinguono due parole. Un trattino vale come uno spazio, e due parole attaccate nell'altra fonte si riconoscono lo stesso. Una parola lunga con una lettera di differenza conta comunque.
-- L'iniziale puntata (U. Eco) vale per il nome quando un'altra parola dell'autore è già nella citazione. Un cognome lungo con una lettera di differenza (Mahfuz e Mahfouz) conta lo stesso.
-- Se il titolo ha meno di cinque parole e il cognome (la parola più lunga dell'autore) non è nella citazione, la riga non va in Libri: finisce in Da rivedere con il motivo Autore assente. Così «Il cinese dei giornali» non prende «Il giornale» solo perché l'autore di battesimo è lo stesso, e due libri con lo stesso titolo e un autore diverso restano da controllare.
-- Se l'anno della citazione e quello di una copia coincidono, il punteggio sale di 4 punti; se differiscono di uno, di 2. Un anno lontano non esclude il libro: in bibliografia c'è spesso l'anno dell'opera, a scaffale una ristampa.
+- Un trattino vale come uno spazio, e due parole attaccate nell'altra fonte si riconoscono lo stesso.
+- In Libri il punteggio di un esemplare è il più alto tra le citazioni che l'hanno riconosciuto. In Dettaglio lo scarto è quello della citazione, uguale per tutte le copie di quel titolo. In Da rivedere lo scarto è la differenza fra Punteggio e Secondo punteggio.
 - Un titolo del registro senza parole utilizzabili, per esempio solo «vol. 1», non entra nel confronto. Un titolo di una sola parola resta, se quella parola è lunga e poco comune.
+- Il filtro sull'inventario usa la colonna Inventory Date (calendar). Senza quella colonna, con la casella attiva, il confronto non parte.
 - Si legge il primo foglio di ogni file. La colonna Riga del risultato è la riga di quel foglio, intestazione compresa.
 
 ## Se qualcosa non va
@@ -209,7 +223,7 @@ Merge bibliografie accetta gli Excel dello Scraper. Un file con lo stesso numero
 
 ### Topografie con errore di colonne
 
-Le estrazioni devono avere almeno Insegnamento e Descrizione. Il registro deve avere Title (Complete). Il messaggio indica il file e la colonna mancante. Se l'output scelto è uno dei file in ingresso, il confronto non parte.
+Le estrazioni devono avere almeno Insegnamento e Descrizione. Il registro deve avere Title (Complete). Il filtro sull'inventario richiede anche Inventory Date (calendar). Il messaggio indica il file e la colonna mancante. Se l'output scelto è uno dei file in ingresso, il confronto non parte.
 
 ## Com'è fatto il programma
 
@@ -233,6 +247,6 @@ BiblioHub è un'applicazione desktop in Python e tkinter. La logica di ogni stru
 - PO Line → Excel/CSV 2.1.
 - Attestazioni di pagamento 3.1.
 - Merge bibliografie 1.2.
-- Topografie 1.0.
+- Topografie 1.1.
 
 Dopo una modifica a bibliohub/guide.py il manuale si rigenera, dalla cartella del progetto, con: python docs/build_manual.py
