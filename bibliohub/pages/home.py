@@ -85,6 +85,7 @@ class HomePage(ttk.Frame):
         self.canvas.bind("<Configure>", self._on_canvas_configure)
         self.bind("<Destroy>", self._on_destroy)
         self.bind_all("<MouseWheel>", self._on_wheel)
+        self._wheel_pixels = 0.0
 
         ttk.Label(body, text=f"📚 {APP_NAME}", style="Hero.TLabel").pack(anchor="w")
         ttk.Label(body, text=APP_SUBTITLE, style="HeroSub.TLabel").pack(anchor="w", pady=(2, 0))
@@ -134,18 +135,39 @@ class HomePage(ttk.Frame):
             self.scrollbar.grid_remove()
             self.canvas.yview_moveto(0)
 
-    def _contains_pointer(self) -> bool:
-        widget = self.winfo_containing(*self.winfo_pointerxy())
-        while widget is not None:
-            if widget is self:
-                return True
-            widget = getattr(widget, "master", None)
-        return False
+    def _should_scroll(self) -> bool:
+        # Widgets inside the canvas are invisible to winfo_containing, so the
+        # wheel event was dropped whenever the pointer was over a card.
+        if not self.winfo_exists() or not self.winfo_viewable():
+            return False
+        if getattr(self.app, "current_key", None) != "home":
+            return False
+        px, py = self.winfo_pointerxy()
+        x, y = self.winfo_rootx(), self.winfo_rooty()
+        return x <= px < x + self.winfo_width() and y <= py < y + self.winfo_height()
+
+    def _scroll_pixels(self, pixels: int) -> None:
+        bbox = self.canvas.bbox("all")
+        if not bbox or pixels == 0:
+            return
+        height = max(bbox[3] - bbox[1], 1)
+        top = self.canvas.canvasy(0) + pixels
+        limit = max(height - self.canvas.winfo_height(), 0)
+        top = min(max(top, 0), limit)
+        self.canvas.yview_moveto(top / height)
 
     def _on_wheel(self, event):
-        if not self.winfo_exists() or not self._contains_pointer():
+        if not self._should_scroll():
             return
-        self.canvas.yview_scroll(int(-event.delta / 120), "units")
+        # A mouse notch is 120. A trackpad sends many smaller steps; a plain
+        # integer division by 120 throws those away and the page never moves.
+        self._wheel_pixels += (-event.delta / 120.0) * 48
+        pixels = int(self._wheel_pixels)
+        if pixels == 0:
+            return "break"
+        self._wheel_pixels -= pixels
+        self._scroll_pixels(pixels)
+        return "break"
 
     def _on_destroy(self, event):
         if event.widget is self:
