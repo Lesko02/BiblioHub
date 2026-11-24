@@ -1,8 +1,10 @@
+import sys
 import tkinter as tk
 from tkinter import ttk
 
 from .. import APP_NAME, APP_SUBTITLE, APP_VERSION, theme
 from ..registry import TOOLS
+from .. import win_trackpad
 
 
 class ToolCard(tk.Frame):
@@ -84,8 +86,16 @@ class HomePage(ttk.Frame):
         body.bind("<Configure>", self._on_body_configure)
         self.canvas.bind("<Configure>", self._on_canvas_configure)
         self.bind("<Destroy>", self._on_destroy)
-        self.bind_all("<MouseWheel>", self._on_wheel)
         self._wheel_pixels = 0.0
+        self._native_delta = 0
+        self._trackpad = False
+        if sys.platform == "win32" and win_trackpad.install(self._on_native_wheel):
+            self._trackpad = True
+            self.after(8, self._pump_native_wheel)
+        else:
+            self.bind_all("<MouseWheel>", self._on_wheel)
+            self._hook_wheel(self)
+            self.app.bind("<MouseWheel>", self._on_wheel, add="+")
 
         ttk.Label(body, text=f"📚 {APP_NAME}", style="Hero.TLabel").pack(anchor="w")
         ttk.Label(body, text=APP_SUBTITLE, style="HeroSub.TLabel").pack(anchor="w", pady=(2, 0))
@@ -114,8 +124,6 @@ class HomePage(ttk.Frame):
 
         ttk.Label(body, text=f"{APP_NAME} v{APP_VERSION}  ·  Università degli Studi di Milano",
                   style="Muted.TLabel").pack(anchor="w", pady=(22, 0))
-        self._hook_wheel(self)
-        self.app.bind("<MouseWheel>", self._on_wheel, add="+")
 
     def _on_body_configure(self, _event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -152,26 +160,39 @@ class HomePage(ttk.Frame):
         top = min(max(top, 0), limit)
         self.canvas.yview_moveto(top / height)
 
-    def _on_wheel(self, event):
-        # Windows often delivers the wheel to the toplevel, not to the card
-        # under the pointer. While the home page is showing, that wheel scrolls
-        # this page. Screen coordinates are not consulted: at 150% scaling they
-        # do not match the widget and the gesture was discarded.
-        if not self.winfo_exists() or getattr(self.app, "current_key", None) != "home":
+    def _apply_wheel_delta(self, delta: int) -> None:
+        if not delta or getattr(self.app, "current_key", None) != "home":
             return
-        # A mouse notch is 120. A trackpad sends many smaller steps; a plain
-        # integer division by 120 throws those away and the page never moves.
-        self._wheel_pixels += (-event.delta / 120.0) * 48
+        # One notch is 120. A trackpad sends a stream of smaller steps.
+        self._wheel_pixels += (-delta / 120.0) * 48
         pixels = int(self._wheel_pixels)
         if pixels == 0:
-            return "break"
+            return
         self._wheel_pixels -= pixels
         self._scroll_pixels(pixels)
+
+    def _on_native_wheel(self, delta: int) -> None:
+        # Runs inside the Windows message hook. Touch Tk only from the pump.
+        self._native_delta += int(delta)
+
+    def _pump_native_wheel(self) -> None:
+        if not self.winfo_exists():
+            return
+        delta = self._native_delta
+        self._native_delta = 0
+        if delta:
+            self._apply_wheel_delta(delta)
+        self.after(8, self._pump_native_wheel)
+
+    def _on_wheel(self, event):
+        self._apply_wheel_delta(getattr(event, "delta", 0) or 0)
         return "break"
 
     def _on_destroy(self, event):
         if event.widget is self:
             self.unbind_all("<MouseWheel>")
+            if self._trackpad:
+                win_trackpad.uninstall()
 
     def refresh(self):
         for key, card in self.cards.items():
