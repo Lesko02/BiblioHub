@@ -68,19 +68,34 @@ class ToolCard(tk.Frame):
 
 class HomePage(ttk.Frame):
     def __init__(self, parent, app):
-        super().__init__(parent, padding=(40, 34, 40, 24))
+        super().__init__(parent)
         self.app = app
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
-        ttk.Label(self, text=f"📚 {APP_NAME}", style="Hero.TLabel").pack(anchor="w")
-        ttk.Label(self, text=APP_SUBTITLE, style="HeroSub.TLabel").pack(anchor="w", pady=(2, 0))
+        self.canvas = tk.Canvas(self, background=theme.BG, highlightthickness=0, borderwidth=0)
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.scrollbar.grid(row=0, column=1, sticky="ns")
+
+        body = ttk.Frame(self.canvas, padding=(40, 34, 28, 24))
+        self._window = self.canvas.create_window((0, 0), window=body, anchor="nw")
+        body.bind("<Configure>", self._on_body_configure)
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+        self.bind("<Destroy>", self._on_destroy)
+        self.bind_all("<MouseWheel>", self._on_wheel)
+
+        ttk.Label(body, text=f"📚 {APP_NAME}", style="Hero.TLabel").pack(anchor="w")
+        ttk.Label(body, text=APP_SUBTITLE, style="HeroSub.TLabel").pack(anchor="w", pady=(2, 0))
         ttk.Label(
-            self,
+            body,
             text="Scegli uno strumento per iniziare.  ⓘ Guida, in alto a destra, "
                  "spiega la schermata in cui ti trovi.",
             style="Muted.TLabel",
         ).pack(anchor="w", pady=(14, 18))
 
-        grid = ttk.Frame(self)
+        grid = ttk.Frame(body)
         grid.pack(fill="x")
         columns = 2
 
@@ -96,8 +111,45 @@ class HomePage(ttk.Frame):
             )
             self.cards[info.key] = card
 
-        ttk.Label(self, text=f"{APP_NAME} v{APP_VERSION}  ·  Università degli Studi di Milano",
-                  style="Muted.TLabel").pack(side="bottom", anchor="w", pady=(22, 0))
+        ttk.Label(body, text=f"{APP_NAME} v{APP_VERSION}  ·  Università degli Studi di Milano",
+                  style="Muted.TLabel").pack(anchor="w", pady=(22, 0))
+
+    def _on_body_configure(self, _event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self._update_scrollbar()
+
+    def _on_canvas_configure(self, event):
+        self.canvas.itemconfigure(self._window, width=event.width)
+        self._update_scrollbar()
+
+    def _update_scrollbar(self):
+        bbox = self.canvas.bbox("all")
+        if not bbox:
+            return
+        needed = (bbox[3] - bbox[1]) > self.canvas.winfo_height() + 1
+        mapped = bool(self.scrollbar.winfo_ismapped())
+        if needed and not mapped:
+            self.scrollbar.grid()
+        elif not needed and mapped:
+            self.scrollbar.grid_remove()
+            self.canvas.yview_moveto(0)
+
+    def _contains_pointer(self) -> bool:
+        widget = self.winfo_containing(*self.winfo_pointerxy())
+        while widget is not None:
+            if widget is self:
+                return True
+            widget = getattr(widget, "master", None)
+        return False
+
+    def _on_wheel(self, event):
+        if not self.winfo_exists() or not self._contains_pointer():
+            return
+        self.canvas.yview_scroll(int(-event.delta / 120), "units")
+
+    def _on_destroy(self, event):
+        if event.widget is self:
+            self.unbind_all("<MouseWheel>")
 
     def refresh(self):
         for key, card in self.cards.items():
