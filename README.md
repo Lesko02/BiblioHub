@@ -1,6 +1,6 @@
 # BiblioHub
 
-Desktop tools for the library systems of the University of Milan. Exam bibliographies from the course catalogue, Alma purchase orders, and payment attestations, in one window.
+Desktop tools for the library systems of the University of Milan. Exam bibliographies from the course catalogue, a match against the exam-copy register, Alma purchase orders, and payment attestations, in one window.
 
 <p align="center">
   <img src="docs/images/home.png" alt="BiblioHub home" width="880">
@@ -14,6 +14,7 @@ The interface is Italian. **ⓘ Guida**, top right, explains the screen you are 
 |---|---|
 | **Scraper Insegnamenti 7.0** | Reads an “Elenco insegnamenti A-Z” page and writes one Excel row per bibliography item: course, programme, period, edition, teacher, description, year, ISBN. Academic year and programme follow the site. Period is first semester, second semester, annual (including multi-period), or any. Course pages are fetched ten at a time. Inactive editions stay in the sheet, highlighted. The output file name carries the academic year. |
 | **Merge bibliografie 1.2** | Compares two scraper workbooks. Case is ignored, and the same resource matches even when the programme column differs. That column stays in the result. Differences are marked Left / Right; shared rows can be listed on their own. |
+| **Topografie 1.0** | Matches one or more scraper workbooks to an Alma exam-copy register. Each citation is scored against the catalog title. Matches above the threshold are written with shelfmark, barcode, and the course where the citation was found. Close calls go to a review sheet. |
 | **PO Line → Excel/CSV 2.1** | Turns an Alma PO-line export into CSV (semicolon, UTF-8 with BOM) and Excel. The price written out is the list price, with the 15% discount put back. |
 | **Attestazioni di pagamento 3.1** | Filters an invoice table on `data_protocollo`. For each supplier and delivery note it writes a Word attestation from a template, a PDF through Microsoft Word, and the text of the covering email. |
 

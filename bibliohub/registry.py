@@ -59,4 +59,15 @@ TOOLS = [
         page="bibliohub.pages.merge_bibliografie:MergeBibliografiePage",
         requires=["pandas", "openpyxl"],
     ),
+    ToolInfo(
+        key="topografie",
+        title="Topografie",
+        version="1.0",
+        icon="🗺️",
+        description="Confronta le bibliografie estratte con il registro dei libri "
+                    "d'esame. Abbina le citazioni ai titoli con un punteggio e "
+                    "scrive gli esemplari trovati, con il corso da cui arrivano.",
+        page="bibliohub.pages.topografie:TopografiePage",
+        requires=["pandas", "openpyxl"],
+    ),
 ]

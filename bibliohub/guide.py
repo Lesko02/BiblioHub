@@ -53,8 +53,8 @@ CHAPTERS = [
         "Panoramica",
         [
             P("BiblioHub riunisce in una finestra gli strumenti per le bibliografie "
-              "d'esame, gli ordini Alma e le attestazioni di pagamento "
-              "dell'Università degli Studi di Milano."),
+              "d'esame, il confronto con il registro topografico, gli ordini Alma "
+              "e le attestazioni di pagamento dell'Università degli Studi di Milano."),
             P("Dalla home si apre uno strumento. Home, in alto a sinistra, riporta "
               "alla scelta. Il pulsante i con la scritta Guida, in alto a destra, apre questa guida "
               "sulla schermata in cui ti trovi. Da qui si apre anche il manuale PDF."),
@@ -65,12 +65,13 @@ CHAPTERS = [
             P("Le ultime cartelle e le opzioni restano in "
               "%APPDATA%\\BiblioHub\\settings.json. Alla prima apertura di uno "
               "strumento, se manca un pacchetto Python, BiblioHub propone di installarlo."),
-            H("I quattro strumenti"),
+            H("Gli strumenti"),
             L(
-                "Scraper Insegnamenti 6.5 — bibliografie dal sito dei corsi di laurea.",
+                "Scraper Insegnamenti 7.0 — bibliografie dal sito dei corsi di laurea.",
                 "PO Line → Excel/CSV 2.1 — linee d'ordine Alma in CSV ed Excel.",
                 "Attestazioni di pagamento 3.1 — Word, PDF e testo dell'email.",
-                "Merge bibliografie 1.1 — confronto tra due estrazioni dello scraper.",
+                "Merge bibliografie 1.2 — confronto tra due estrazioni dello scraper.",
+                "Topografie 1.0 — abbinamento fra bibliografie estratte e registro dei libri d'esame.",
             ),
         ],
     ),
@@ -261,6 +262,74 @@ CHAPTERS = [
         ],
     ),
     Chapter(
+        "topografie",
+        "Topografie",
+        "Topografie",
+        [
+            P("Confronta uno o più Excel dello Scraper con un registro di esemplari "
+              "già segnati come libri d'esame. Il registro è un export di Alma: ogni riga "
+              "è una copia e il titolo sta in Title (Complete), di solito nella forma "
+              "«titolo : sottotitolo / autore»."),
+            P("La citazione estratta non ha una forma fissa. Il confronto guarda se le "
+              "parole del titolo, e dell'autore quando c'è, compaiono nella citazione. "
+              "Le parole rare pesano di più. Il punteggio va da 0 a 100. Ogni citazione "
+              "è misurata solo contro i titoli che condividono una sua parola poco comune, "
+              "e il confronto scorre in un solo filo."),
+            STEPS(
+                "In Estrazioni dello Scraper aggiungi uno o più Excel. Servono le colonne "
+                "Insegnamento e Descrizione. Ordinamento, Periodo, Edizione, Docente, Data "
+                "e ISBN, se ci sono, finiscono nel risultato.",
+                "In Registro topografico carica l'export degli esemplari. La colonna "
+                "Title (Complete) è obbligatoria. Barcode, inventario, collocazione, "
+                "biblioteca, ubicazione, MMS Id e Dewey vengono ricopiati quando l'intestazione c'è.",
+                "Scegli il file di output. Non può essere uno dei file appena caricati.",
+                "La soglia, di serie 80, decide quali abbinamenti vanno nel foglio Libri. "
+                "Lo scarto, di serie 8, manda in Da rivedere i casi in cui il secondo titolo "
+                "è ancora vicino al primo.",
+                "Le citazioni più corte del minimo, o più lunghe del massimo, non vengono confrontate. "
+                "Di serie il minimo è 25 caratteri e il massimo 400.",
+                "Premi Abbina, poi Apri risultato. Interrompi ferma il confronto e salva "
+                "quanto è già stato abbinato.",
+            ),
+            EXPECT(
+                "Libri: un esemplare per riga, con barcode, inventario e collocazione, "
+                "e i corsi in cui la citazione è stata riconosciuta. Il riferimento indica "
+                "il file, la riga dell'Excel e l'insegnamento.",
+                "Dettaglio: una riga per ogni citazione abbinata e ogni copia, con il punteggio.",
+                "Da rivedere: citazioni sotto la soglia ma vicine (fino a 10 punti in meno), "
+                "citazioni in cui i due titoli migliori sono troppo vicini, e titoli brevi "
+                "in cui il cognome non compare nella citazione. "
+                "Il motivo è Sotto soglia (sfondo pesca), Scarto basso o Autore assente (sfondo giallo).",
+                "Riepilogo: quante righe sono state lette, scartate, abbinate o messe da parte, "
+                "file per file.",
+                "Lo stesso titolo presente in più copie produce una riga per copia, con lo stesso punteggio.",
+                "Il verde in colonna Punteggio è da 90 in su, l'azzurro è sopra la soglia, "
+                "il pesca è sotto.",
+            ),
+            NOTES(
+                "Maiuscole, accenti e punteggiatura non distinguono due parole. "
+                "Un trattino vale come uno spazio, e due parole attaccate nell'altra fonte "
+                "si riconoscono lo stesso. Una parola lunga con una lettera di differenza conta comunque.",
+                "L'iniziale puntata (U. Eco) vale per il nome quando un'altra parola dell'autore "
+                "è già nella citazione. Un cognome lungo con una lettera di differenza "
+                "(Mahfuz e Mahfouz) conta lo stesso.",
+                "Se il titolo ha meno di cinque parole e il cognome (la parola più lunga dell'autore) "
+                "non è nella citazione, la riga non va in Libri: finisce in Da rivedere con il "
+                "motivo Autore assente. Così «Il cinese dei giornali» non prende «Il giornale» "
+                "solo perché l'autore di battesimo è lo stesso, e due libri con lo stesso titolo "
+                "e un autore diverso restano da controllare.",
+                "Se l'anno della citazione e quello di una copia coincidono, il punteggio sale di 4 punti; "
+                "se differiscono di uno, di 2. Un anno lontano non esclude il libro: in bibliografia "
+                "c'è spesso l'anno dell'opera, a scaffale una ristampa.",
+                "Un titolo del registro senza parole utilizzabili, per esempio solo «vol. 1», "
+                "non entra nel confronto. Un titolo di una sola parola resta, se quella parola "
+                "è lunga e poco comune.",
+                "Si legge il primo foglio di ogni file. La colonna Riga del risultato è la riga "
+                "di quel foglio, intestazione compresa.",
+            ),
+        ],
+    ),
+    Chapter(
         "trouble",
         "Se qualcosa non va",
         "Se qualcosa non va",
@@ -285,6 +354,11 @@ CHAPTERS = [
             P("Merge bibliografie accetta gli Excel dello Scraper. Un file con lo stesso "
               "numero di colonne ma con intestazioni diverse viene rifiutato: il registro "
               "elenca le colonne mancanti."),
+            H("Topografie con errore di colonne"),
+            P("Le estrazioni devono avere almeno Insegnamento e Descrizione. "
+              "Il registro deve avere Title (Complete). Il messaggio indica il file "
+              "e la colonna mancante. Se l'output scelto è uno dei file in ingresso, "
+              "il confronto non parte."),
         ],
     ),
     Chapter(
@@ -332,6 +406,7 @@ def _fill_versions():
         "po": "linee d'ordine Alma in CSV ed Excel.",
         "attestazioni": "Word, PDF e testo dell'email.",
         "merge": "confronto tra due estrazioni dello scraper.",
+        "topografie": "abbinamento fra bibliografie estratte e registro dei libri d'esame.",
     }
     for block in chapter("home").blocks:
         if block.kind == "list" and block.items and block.items[0].startswith("Scraper"):
