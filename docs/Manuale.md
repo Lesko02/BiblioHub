@@ -1,6 +1,6 @@
 # Manuale d'uso di BiblioHub
 
-Strumenti per i sistemi bibliotecari UNIMI. Versione 1.1.0.
+Strumenti per i sistemi bibliotecari UNIMI. Versione 1.2.0.
 
 Testo generato da `bibliohub/guide.py`. Per rigenerarlo: `python docs/build_manual.py`.
 
@@ -242,7 +242,7 @@ BiblioHub è un'applicazione desktop in Python e tkinter. La logica di ogni stru
 
 ### Versioni attuali
 
-- Applicazione 1.1.0.
+- Applicazione 1.2.0.
 - Scraper Insegnamenti 7.0.
 - PO Line → Excel/CSV 2.1.
 - Attestazioni di pagamento 3.1.
