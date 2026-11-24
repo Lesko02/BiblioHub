@@ -62,7 +62,7 @@ TOOLS = [
     ToolInfo(
         key="topografie",
         title="Topografie",
-        version="1.0",
+        version="1.1",
         icon="🗺️",
         description="Confronta le bibliografie estratte con il registro dei libri "
                     "d'esame. Abbina le citazioni ai titoli con un punteggio e "

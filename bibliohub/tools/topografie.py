@@ -16,6 +16,9 @@ in «Da rivedere» invece che in Libri.
 Sotto la soglia, fino a 10 punti in meno, la citazione resta in «Da rivedere».
 Un titolo di meno di cinque parole, se il cognome non compare nella citazione,
 va in «Da rivedere» con il motivo Autore assente.
+
+Si può limitare il registro alle copie inventariate prima di una data.
+Un anno da solo vale il 1° gennaio di quell'anno. Le copie senza data restano.
 """
 
 import math
@@ -23,6 +26,7 @@ import re
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -32,7 +36,7 @@ from openpyxl.utils import get_column_letter
 
 from ..values import as_text
 
-VERSION = "1.0"
+VERSION = "1.1"
 
 DEFAULT_THRESHOLD = 80
 DEFAULT_GAP = 8
@@ -42,6 +46,7 @@ NEAR_BAND = 10
 
 TITLE_COLUMN = "Title (Complete)"
 YEAR_COLUMN = "Publication Date"
+INVENTORY_COLUMN = "Inventory Date (calendar)"
 
 SCRAPER_REQUIRED = ["Insegnamento", "Descrizione"]
 SCRAPER_FIELDS = [
@@ -214,6 +219,9 @@ class MatchResult:
     max_chars: int = DEFAULT_MAX_CHARS
     stopped: bool = False
     output: str = ""
+    inventory_before: str = ""
+    excluded_copies: int = 0
+    undated_copies: int = 0
 
 
 def _fold(text: str) -> str:
@@ -244,6 +252,56 @@ def _years(text: str) -> list[int]:
 def _last_year(text: str) -> int | None:
     found = _years(text)
     return found[-1] if found else None
+
+
+def parse_cutoff(text: str) -> date:
+    """
+    Data limite dell'inventario.
+    Un anno da solo («2024») vale il 1° gennaio di quell'anno.
+    """
+    raw = str(text).strip()
+    if re.fullmatch(r"\d{4}", raw):
+        year = int(raw)
+        if not 1900 <= year <= 2100:
+            raise ValueError(
+                f"Anno non valido: {raw}. Usa un anno tra il 1900 e il 2100, "
+                "oppure una data (01/01/2024)."
+            )
+        return date(year, 1, 1)
+    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(
+        f"Data non valida: {raw}. Usa un anno (2024) oppure un giorno (01/01/2024)."
+    )
+
+
+def _inventory_date(value) -> date | None:
+    try:
+        if value is None or pd.isna(value):
+            return None
+    except TypeError:
+        if value is None:
+            return None
+    if isinstance(value, datetime):
+        try:
+            found = value.date()
+        except (ValueError, OSError):
+            return None
+        if isinstance(found, date) and not isinstance(found, datetime):
+            return found
+        return None
+    if isinstance(value, date):
+        return value
+    text = as_text(value)
+    if not text:
+        return None
+    try:
+        return parse_cutoff(text)
+    except ValueError:
+        return None
 
 
 def _split_title(raw: str) -> tuple[str, str]:
@@ -292,17 +350,32 @@ def _read_excel(path, log):
     return frame, sheet
 
 
-def _load_registro(path, log) -> tuple[list[Work], int, int]:
+def _load_registro(path, log, inventory_before: date | None = None) -> tuple[list[Work], dict]:
     frame, _sheet = _read_excel(path, log)
     if TITLE_COLUMN not in frame.columns:
         raise ValueError(
             "Il registro non ha la colonna «Title (Complete)».\n"
             f"{path}"
         )
+    if inventory_before is not None and INVENTORY_COLUMN not in frame.columns:
+        raise ValueError(
+            "Per filtrare sull'inventario serve la colonna "
+            f"«{INVENTORY_COLUMN}».\n{path}"
+        )
     present = [(source, label) for source, label in COPY_SOURCES if source in frame.columns]
     grouped: dict[tuple[str, ...], Work] = {}
     skipped = 0
+    excluded = 0
+    undated = 0
     for _, row in frame.iterrows():
+        missing_date = False
+        if inventory_before is not None:
+            inventoried = _inventory_date(row[INVENTORY_COLUMN])
+            if inventoried is None:
+                missing_date = True
+            elif inventoried >= inventory_before:
+                excluded += 1
+                continue
         raw = " ".join(as_text(row[TITLE_COLUMN]).split())
         left, right = _split_title(raw)
         title_tokens, _unused = _analyze(left)
@@ -319,16 +392,28 @@ def _load_registro(path, log) -> tuple[list[Work], int, int]:
         year_text = as_text(row[YEAR_COLUMN]) if YEAR_COLUMN in frame.columns else ""
         values = {label: as_text(row[source]) for source, label in present}
         work.copies.append(Copy(values, _last_year(year_text)))
-    works = list(grouped.values())
+        if missing_date:
+            undated += 1
+    works = [work for work in grouped.values() if work.copies]
     if not works:
         raise ValueError(
-            "Nel registro non c'è nessun titolo con parole confrontabili.\n"
-            f"{path}"
+            "Nel registro non c'è nessun titolo con parole confrontabili"
+            + (" prima della data indicata." if inventory_before else ".")
+            + f"\n{path}"
         )
     copies = sum(len(work.copies) for work in works)
     log(f"Registro: {len(frame)} righe, {len(works)} titoli confrontabili "
         f"({copies} esemplari), {skipped} titoli scartati perché senza parole utili.")
-    return works, len(frame), skipped
+    if inventory_before is not None:
+        log(f"Inventario prima del {inventory_before.strftime('%d/%m/%Y')}: "
+            f"esclusi {excluded} esemplari da quella data in poi, "
+            f"{undated} senza data restano nel confronto.")
+    return works, {
+        "rows": len(frame),
+        "skipped_works": skipped,
+        "excluded": excluded,
+        "undated": undated,
+    }
 
 
 def _load_citation(origin: FileStats, excel_row: int, values: dict[str, str],
@@ -837,13 +922,21 @@ def _write_summary(ws, result: MatchResult) -> None:
         ("Fascia «Da rivedere» sotto la soglia", NEAR_BAND),
         ("Caratteri minimi", result.min_chars),
         ("Caratteri massimi", result.max_chars),
+        ("Inventario precedente al", result.inventory_before or "nessun filtro"),
+    ]
+    if result.inventory_before:
+        rows.extend([
+            ("Esemplari esclusi (inventario successivo)", result.excluded_copies),
+            ("Esemplari senza data di inventario", result.undated_copies),
+        ])
+    rows.extend([
         ("Confronti eseguiti", result.comparisons),
         ("Citazioni abbinate", matched),
         ("Titoli abbinati", result.titles_matched),
         ("Esemplari abbinati", result.copies_matched),
         ("Citazioni da rivedere", reviewed),
         ("Interrotto", "sì" if result.stopped else "no"),
-    ]
+    ])
     for offset, (label, value) in enumerate(rows, start=2):
         ws.cell(offset, 1, label)
         ws.cell(offset, 2, value)
@@ -897,6 +990,7 @@ def _write_workbook(path, result: MatchResult) -> None:
 def match_topografie(scraper_paths, registro_path, output_path, *,
                      threshold=DEFAULT_THRESHOLD, gap=DEFAULT_GAP,
                      min_chars=DEFAULT_MIN_CHARS, max_chars=DEFAULT_MAX_CHARS,
+                     inventory_before: date | None = None,
                      log=print, progress=None, should_stop=None) -> dict:
     """
     Scrive l'Excel e ritorna un riepilogo. Il confronto è sequenziale.
@@ -928,7 +1022,11 @@ def match_topografie(scraper_paths, registro_path, output_path, *,
             "Il file di output coincide con uno dei file in ingresso. Scegline un altro."
         )
 
-    works, registro_rows, skipped_works = _load_registro(registro_path, log)
+    if isinstance(inventory_before, datetime):
+        inventory_before = inventory_before.date()
+    elif isinstance(inventory_before, str):
+        inventory_before = parse_cutoff(inventory_before) if inventory_before.strip() else None
+    works, registro_info = _load_registro(registro_path, log, inventory_before)
     files, citations = _load_scrapers(scraper_paths, min_chars, max_chars, log)
     doc_freq, postings = _index(works)
     log(f"Confronto di {len(citations)} citazioni con {len(works)} titoli…")
@@ -944,9 +1042,12 @@ def match_topografie(scraper_paths, registro_path, output_path, *,
         review=review_rows,
         files=files,
         registro_path=str(registro_path),
-        registro_rows=registro_rows,
+        registro_rows=registro_info["rows"],
         works=len(works),
-        skipped_works=skipped_works,
+        skipped_works=registro_info["skipped_works"],
+        inventory_before="" if inventory_before is None else inventory_before.strftime("%d/%m/%Y"),
+        excluded_copies=registro_info["excluded"],
+        undated_copies=registro_info["undated"],
         copies_matched=copies_matched,
         titles_matched=titles_matched,
         comparisons=comparisons,

@@ -9,6 +9,25 @@ from ..widgets import Card, PathField, ToolPage, documents_dir
 XLSX = [("Excel", "*.xlsx"), ("Tutti i file", "*.*")]
 
 
+class GatedEntry(ttk.Entry):
+    """Campo che resta spento quando il cancello è chiuso, anche a fine lavoro."""
+
+    def __init__(self, parent, gate, **kwargs):
+        self._gate = gate
+        super().__init__(parent, **kwargs)
+
+    def configure(self, cnf=None, **kwargs):
+        if cnf is not None and not isinstance(cnf, str):
+            cnf = dict(cnf)
+            if cnf.get("state") == "normal" and not self._gate():
+                cnf["state"] = "disabled"
+        if kwargs.get("state") == "normal" and not self._gate():
+            kwargs["state"] = "disabled"
+        return super().configure(cnf, **kwargs)
+
+    config = configure
+
+
 class SourceList:
     """Elenco di Excel dello Scraper, con aggiunta e rimozione."""
 
@@ -143,6 +162,24 @@ class TopografiePage(ToolPage):
         self.max_spin.pack(side="left", padx=(8, 6))
         ttk.Label(length_row, text="caratteri, non si confrontano.", style="Card.TLabel").pack(side="left")
 
+        saved_filter = bool(self.settings.get(self.key, "inventory_filter", False))
+        self.inventory_on = tk.BooleanVar(value=saved_filter)
+        saved_cutoff = self.settings.get(self.key, "inventory_before", "")
+        self.inventory_var = tk.StringVar(value="" if saved_cutoff is None else str(saved_cutoff))
+
+        inventory_row = ttk.Frame(options, style="Card.TFrame")
+        inventory_row.grid(row=4, column=0, columnspan=3, sticky="w", pady=(8, 0))
+        self.inventory_check = ttk.Checkbutton(
+            inventory_row, text="Solo esemplari inventariati prima del",
+            variable=self.inventory_on, command=self._sync_inventory)
+        self.inventory_check.pack(side="left")
+        self.inventory_entry = GatedEntry(
+            inventory_row, self.inventory_on.get, width=16, textvariable=self.inventory_var)
+        self.inventory_entry.pack(side="left", padx=(8, 8))
+        ttk.Label(inventory_row, text="anno o data.  2024 vale 01/01/2024.",
+                  style="CardMuted.TLabel").pack(side="left")
+        self._sync_inventory()
+
         hint = ttk.Label(
             options,
             text="Sopra la soglia il titolo va in Libri. Va in Da rivedere se il secondo titolo "
@@ -150,12 +187,13 @@ class TopografiePage(ToolPage):
                  "o se il titolo è breve e il cognome non è nella citazione.",
             style="CardMuted.TLabel", wraplength=680, justify="left",
         )
-        hint.grid(row=4, column=0, columnspan=3, sticky="w", pady=(8, 2))
+        hint.grid(row=5, column=0, columnspan=3, sticky="w", pady=(8, 2))
 
         self.add_action("▶  Abbina", self.start, accent=True)
         self.register_busy(
             *self.sources.widgets, self.registro, self.output,
             self.threshold_spin, self.gap_spin, self.min_spin, self.max_spin,
+            self.inventory_check, self.inventory_entry,
         )
 
     def _saved_int(self, key, default):
@@ -176,6 +214,21 @@ class TopografiePage(ToolPage):
         if value < low or value > high:
             return None
         return value
+
+    def _sync_inventory(self):
+        state = "normal" if self.inventory_on.get() else "disabled"
+        self.inventory_entry.configure(state=state)
+
+    def _cutoff(self):
+        if not self.inventory_on.get():
+            return None
+        raw = self.inventory_var.get().strip()
+        if not raw:
+            return False
+        try:
+            return topografie.parse_cutoff(raw)
+        except ValueError:
+            return False
 
     def start(self):
         sources = self.sources.get_paths()
@@ -210,6 +263,14 @@ class TopografiePage(ToolPage):
             messagebox.showwarning(
                 self.title, "Il minimo di caratteri non può superare il massimo.", parent=self)
             return
+        cutoff = self._cutoff()
+        if cutoff is False:
+            messagebox.showwarning(
+                self.title,
+                "Indica l'anno o la data di inventario.\n"
+                "Un anno da solo, per esempio 2024, vale il 01/01/2024.",
+                parent=self)
+            return
 
         registro = self.registro.get()
         self.settings.set(self.key, "sources", sources)
@@ -219,6 +280,8 @@ class TopografiePage(ToolPage):
         self.settings.set(self.key, "gap", gap)
         self.settings.set(self.key, "min_chars", min_chars)
         self.settings.set(self.key, "max_chars", max_chars)
+        self.settings.set(self.key, "inventory_filter", bool(self.inventory_on.get()))
+        self.settings.set(self.key, "inventory_before", self.inventory_var.get().strip())
         self.settings.save()
 
         def task(log, progress, should_stop):
@@ -226,6 +289,7 @@ class TopografiePage(ToolPage):
                 sources, registro, output,
                 threshold=threshold, gap=gap,
                 min_chars=min_chars, max_chars=max_chars,
+                inventory_before=cutoff,
                 log=log, progress=progress, should_stop=should_stop,
             )
 
@@ -234,11 +298,16 @@ class TopografiePage(ToolPage):
                 self.set_result(result["output"])
 
         names = "\n".join(f"· {Path(path).name}" for path in sources)
+        if cutoff is None:
+            inventory_line = "Inventario: nessun filtro"
+        else:
+            inventory_line = f"Inventario prima del {cutoff.strftime('%d/%m/%Y')}"
         self.run_task(
             task, done, stoppable=True,
             start_message=(f"Estrazioni:\n{names}\n"
                            f"Registro: {registro}\n"
                            f"Output:   {output}\n"
                            f"Soglia {threshold}, scarto {gap}, "
-                           f"caratteri {min_chars}–{max_chars}\n"),
+                           f"caratteri {min_chars}–{max_chars}\n"
+                           f"{inventory_line}\n"),
         )
