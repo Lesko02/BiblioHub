@@ -73,12 +73,13 @@ class App(tk.Tk):
         theme.apply(self)
 
         self.title(APP_NAME)
+        self.resizable(True, True)
         scale = self.winfo_fpixels("1i") / 96
-        width, height = int(1120 * scale), int(780 * scale)
+        width, height = int(1440 * scale), int(800 * scale)
         x = (self.winfo_screenwidth() - width) // 2
         y = max((self.winfo_screenheight() - height) // 2 - int(20 * scale), 0)
         self.geometry(f"{width}x{height}+{x}+{y}")
-        self.minsize(int(900 * scale), int(640 * scale))
+        self.minsize(int(1100 * scale), int(640 * scale))
 
         self._build_header()
 

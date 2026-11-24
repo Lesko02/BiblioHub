@@ -6,7 +6,9 @@ Desktop tools for the library systems of the University of Milan. Exam bibliogra
   <img src="docs/images/home.png" alt="BiblioHub home" width="880">
 </p>
 
-The interface is Italian. **ⓘ Guida**, top right, explains the screen you are on. The full manual is [`docs/Manuale_BiblioHub.pdf`](docs/Manuale_BiblioHub.pdf).
+The interface is Italian. **ⓘ Guida**, top right, explains the screen you are on.
+
+The same manual can be read in the browser, without opening the app: [Manuale d'uso](docs/Manuale.md). GitHub renders that Markdown page, including the Topografie score and the inventory-date filter. A PDF of the same text is [`docs/Manuale_BiblioHub.pdf`](docs/Manuale_BiblioHub.pdf).
 
 ## Tools
 
